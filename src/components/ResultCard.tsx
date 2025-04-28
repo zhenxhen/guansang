@@ -410,28 +410,62 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
           }
         }).then(canvas => {
           // 캔버스를 이미지로 변환
-          const image = canvas.toDataURL('image/png');
-          // 다운로드 링크 생성
-          const link = document.createElement('a');
-          link.href = image;
-          link.download = `관상데이터카드_${userName}_${new Date().toISOString().slice(0, 10)}.png`;
-          
-          // 모바일 환경 감지
-          if (/Mobi|Android/i.test(navigator.userAgent)) {
-            alert('이미지가 갤러리에 저장되었습니다. 갤러리에서 확인하세요.');
-          } else {
-            // 다운로드 링크 클릭
-            link.click();
-          }
-          
-          // 캡처 모드 비활성화
-          setIsCapturing(false);
-          
-          // 저장 완료 후 콜백 호출
-          onSave();
+          canvas.toBlob((blob) => {
+            if (blob) {
+              // 모바일 환경 체크
+              const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+              // 파일명 설정
+              const fileName = `관상데이터카드_${userName}_${new Date().toISOString().slice(0, 10)}.png`;
+              
+              if (isMobile) {
+                try {
+                  // 모바일 공유 API 사용
+                  if (navigator.share) {
+                    const file = new File([blob], fileName, { type: 'image/png' });
+                    navigator.share({
+                      files: [file],
+                      title: '관상 데이터 카드',
+                      text: '내 관상 데이터 카드'
+                    }).then(() => {
+                      console.log('공유 성공');
+                      setIsCapturing(false);
+                      onSave();
+                    }).catch((error) => {
+                      console.log('공유 실패:', error);
+                      // 공유 실패시 기본 다운로드로 폴백
+                      fallbackDownload(blob, fileName);
+                    });
+                  } else {
+                    // Share API를 지원하지 않는 경우 기본 다운로드
+                    fallbackDownload(blob, fileName);
+                  }
+                } catch (error) {
+                  console.error('저장 실패:', error);
+                  fallbackDownload(blob, fileName);
+                }
+              } else {
+                // 데스크톱 환경에서는 기본 다운로드
+                fallbackDownload(blob, fileName);
+              }
+            }
+          }, 'image/png');
         });
       }, 100);
     }
+  };
+
+  // 기본 다운로드 폴백 함수
+  const fallbackDownload = (blob: Blob, fileName: string) => {
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    window.URL.revokeObjectURL(url);
+    setIsCapturing(false);
+    onSave();
   };
 
   // body 스타일 설정을 위한 부수 효과
