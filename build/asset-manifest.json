@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/guansang-app/static/css/main.96e1ed0c.css",
+    "main.js": "/guansang-app/static/js/main.134bcb1d.js",
+    "static/js/453.02ff153c.chunk.js": "/guansang-app/static/js/453.02ff153c.chunk.js",
+    "index.html": "/guansang-app/index.html",
+    "main.96e1ed0c.css.map": "/guansang-app/static/css/main.96e1ed0c.css.map",
+    "main.134bcb1d.js.map": "/guansang-app/static/js/main.134bcb1d.js.map",
+    "453.02ff153c.chunk.js.map": "/guansang-app/static/js/453.02ff153c.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.96e1ed0c.css",
+    "static/js/main.134bcb1d.js"
+  ]
+}

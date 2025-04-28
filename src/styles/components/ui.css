@@ -1,0 +1,181 @@
+/**
+ * 공통 UI 요소 스타일
+ */
+
+/* 기본 페이지 스타일 */
+body {
+  font-family: helvetica, arial, sans-serif;
+  margin: 2em;
+  color: #3d3d3d;
+  --mdc-theme-primary: #007f8b;
+  --mdc-theme-on-primary: #f1f3f4;
+}
+
+.App {
+  text-align: center;
+  padding: 0px;
+  margin: 0 auto;
+  background-color: white;
+}
+
+/* 타이포그래피 */
+h1 {
+  font-style: italic;
+  color: #007f8b;
+  font-size: 26px;
+  margin-top: 10px;
+  margin-bottom: 20px;
+}
+
+h2 {
+  clear: both;
+}
+
+em {
+  font-weight: bold;
+}
+
+.note {
+  font-style: italic;
+  font-size: 130%;
+}
+
+/* 탭 컨테이너 */
+.tab-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0;
+  gap: 10px;
+}
+
+.tab-button {
+  background-color: #f1f1f1;
+  border: none;
+  padding: 12px 24px;
+  font-size: 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.tab-button:hover {
+  background-color: #e0e0e0;
+}
+
+.tab-button.active {
+  background-color: #007f8b;
+  color: white;
+  font-weight: bold;
+}
+
+/* 버튼 스타일 */
+.mdc-button {
+  margin: 8px 0;
+  background-color: #007f8b;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s;
+  display: inline-block;
+}
+
+.mdc-button:hover {
+  background-color: #005f6b;
+}
+
+.mdc-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.mdc-button__label {
+  font-weight: bold;
+}
+
+/* 유틸리티 클래스 */
+.removed {
+  display: none;
+}
+
+.invisible {
+  opacity: 0.2;
+}
+
+/* 컨테이너 레이아웃 */
+.mobile-container {
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 0 10px;
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-container h2 {
+  text-align: center;
+  margin: 15px 0 5px;
+  font-size: 24px;
+}
+
+.mobile-container p {
+  text-align: center;
+  margin: 0 0 15px;
+  font-size: 16px;
+  color: #666;
+}
+
+/* 애니메이션 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+#demos {
+  opacity: 0;
+  animation: fadeIn 0.5s ease-in-out forwards;
+}
+
+#demos.invisible {
+  opacity: 0;
+}
+
+/* 푸터 스타일 */
+footer {
+  margin-top: 40px;
+  padding: 20px;
+  background-color: #f5f5f5;
+  border-top: 1px solid #e0e0e0;
+  text-align: center;
+  clear: both;
+}
+
+.footer-text {
+  font-size: 14px;
+  color: #555;
+  max-width: 800px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* 모바일 최적화 */
+@media (max-width: 480px) {
+  body {
+    margin: 1em;
+  }
+  
+  .mobile-container h2 {
+    font-size: 20px;
+  }
+  
+  .mobile-container p {
+    font-size: 14px;
+  }
+  
+  .tab-button {
+    font-size: 14px;
+    padding: 8px 16px;
+  }
+} 
