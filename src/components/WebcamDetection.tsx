@@ -1563,10 +1563,11 @@ const WebcamDetection: React.FC = () => {
           /* 모바일일 때 */
           @media (max-width: 768px) {
             .webcam-container {
-              position: absolute;
+              position: fixed;
               top: 0;
               left: 0;
-              height: 100%;
+              width: 100vw;
+              height: 100vh; /* 화면 전체를 사용하도록 수정 */
               background-color: #000;
             }
           }
@@ -1575,8 +1576,8 @@ const WebcamDetection: React.FC = () => {
           @media (min-width: 769px) {
             .webcam-container {
               position: relative;
-              width: 400px;
-              height: 800px;
+              width: 480px;
+              height: 900px;
               border-radius: 12px;
               box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
               background-color: #000;
@@ -1669,7 +1670,7 @@ const WebcamDetection: React.FC = () => {
           @media (min-width: 769px) {
             .collapsible-section {
               position: relative;
-              width: 400px;
+              width: 500px;
               margin: 8px auto;
               border-radius: 8px;
               overflow: hidden;

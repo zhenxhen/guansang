@@ -33,7 +33,7 @@ const ButtonContainer = styled.div<{ show: boolean }>`
   -webkit-backdrop-filter: blur(8px);
   color: white;
   border-radius: 15px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   cursor: pointer;

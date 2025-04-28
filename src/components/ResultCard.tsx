@@ -156,7 +156,7 @@ const Card = styled.div<{ isCapturing?: boolean }>`
   border-radius: 24px;
   padding: 20px;
   width: 100%;
-  max-width: 500px;
+  max-width: 480px;
   box-shadow: 0 4px 20px rgba(212, 192, 145, 0.4);
   margin-bottom: 10px;
   position: relative;
@@ -292,7 +292,7 @@ const InterpretButton = styled.button<{ isVisible: boolean, isCapturing?: boolea
   color: white;
   border: none;
   border-radius: 15px;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   box-shadow: 0 4px 8px rgba(212, 192, 145, 0.7);
   cursor: pointer;
