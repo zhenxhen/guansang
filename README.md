@@ -1,5 +1,9 @@
+<<<<<<< HEAD
+테스트
+=======
 테스트중
 실시간 테스트 중
+>>>>>>> react-deployment
 
 # 관상 앱 (Guansang App)
 
