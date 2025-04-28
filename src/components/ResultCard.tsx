@@ -21,7 +21,7 @@ const GlobalStyle = createGlobalStyle`
 // 화면 크기에 따른 스타일을 정의하는 미디어 쿼리
 const responsiveStyles = {
   extraSmall: {
-    labelSize: '6px',
+    labelSize: '9px',
     valueSize: '10px',
     circleSize: '16px',
     maxWidth: '70px',
@@ -91,7 +91,7 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   min-height: 100vh;
   width: 100vw;
   height: 100vh;
@@ -111,7 +111,7 @@ const Container = styled.div`
 
 const Header = styled.div`
   text-align: center;
-  margin-top: 40px;
+  margin-top: 20px;
   margin-bottom: 10px;
   width: 100%;
 `;
@@ -127,8 +127,8 @@ const HeaderSubtitle = styled.h2`
   font-size: 18px;
   color: #9A9A9A;
   font-weight: 600;
-  margin-top: 40px;
-  margin-bottom: -60px;
+  margin-top: 10px;
+  margin-bottom: 10px;
   padding-bottom: 0px;
   font-family: 'Pretendard', sans-serif;
 `;
@@ -143,8 +143,8 @@ const Card = styled.div`
   padding: 20px;
   width: 100%;
   max-width: 500px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-  margin-bottom: 30px;
+  box-shadow: 0 4px 20px rgba(212, 192, 145, 0.4);
+  margin-bottom: 10px;
   position: relative;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
   aspect-ratio: 1 / 1.5;
@@ -236,7 +236,7 @@ const Button = styled.button`
   align-items: center;
   justify-content: center;
   padding: 0;
-  background-color: #D2D2D2;
+  background-color:rgba(210, 210, 210, 0.57);
   color: white;
   border: none;
   border-radius: 15px;
@@ -258,17 +258,15 @@ const Button = styled.button`
 `;
 
 const InterpretButton = styled.button`
-  position: absolute;
-  bottom: 60px;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  width: 330px;
+  position: relative;
+  margin: 20px auto 50px auto;
+  width: 100%;
+  max-width: 500px;
   height: 60px;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(234, 213, 161, 0.8);
+  background-color: rgba(234, 213, 161, 0.9);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   color: white;
@@ -276,10 +274,10 @@ const InterpretButton = styled.button`
   border-radius: 15px;
   font-size: 18px;
   font-weight: 600;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px rgba(212, 192, 145, 0.7);
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  z-index: 1000;
+  z-index: 10;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
   
   &:active {
@@ -289,15 +287,22 @@ const InterpretButton = styled.button`
 `;
 
 const Footer = styled.div`
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   text-align: center;
-  padding-bottom: 20px;
+  padding-bottom: 10px;
+  padding-top: 10px;
   width: 100%;
+  background-color: #EAEAEA;
   font-family: 'Pretendard', sans-serif;
+  z-index: 5;
 `;
 
 const Copyright = styled.div`
   color: #999;
-  font-size: 14px;
+  font-size: 9px;
   font-family: 'Pretendard', sans-serif;
   margin-top: 8px;
 `;
@@ -512,7 +517,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
         </Card>
 
         <InterpretButton>
-          Analysis
+          Interpret with AI
         </InterpretButton>
 
         <Footer>
