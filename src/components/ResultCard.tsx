@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import styled, { createGlobalStyle, css } from 'styled-components';
+import styled, { createGlobalStyle, css, keyframes } from 'styled-components';
 import html2canvas from 'html2canvas';
 
 // 전역 스타일 설정
@@ -109,11 +109,25 @@ const Container = styled.div`
   box-sizing: border-box;
 `;
 
-const Header = styled.div`
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+`;
+
+const Header = styled.div<{ isCapturing?: boolean }>`
   text-align: center;
-  margin-top: 20px;
+  margin-top: 50px;
   margin-bottom: 10px;
   width: 100%;
+  animation: ${props => props.isCapturing ? 'none' : fadeIn} 0.8s ease-out forwards;
+  opacity: ${props => props.isCapturing ? '1' : '0'};
+  transform: ${props => props.isCapturing ? 'none' : 'translateY(20px)'};
 `;
 
 const HeaderTitle = styled.h1`
@@ -126,7 +140,7 @@ const HeaderTitle = styled.h1`
 const HeaderSubtitle = styled.h2`
   font-size: 18px;
   color: #9A9A9A;
-  font-weight: 600;
+  font-weight: 400;
   margin-top: 10px;
   margin-bottom: 10px;
   padding-bottom: 0px;
@@ -137,7 +151,7 @@ const BoldText = styled.span`
   font-weight: 800;
 `;
 
-const Card = styled.div`
+const Card = styled.div<{ isCapturing?: boolean }>`
   background-color: white;
   border-radius: 24px;
   padding: 20px;
@@ -150,6 +164,9 @@ const Card = styled.div`
   aspect-ratio: 1 / 1.5;
   box-sizing: border-box;
   overflow: hidden;
+  animation: ${props => props.isCapturing ? 'none' : fadeIn} 0.8s ease-out 0.3s forwards;
+  opacity: ${props => props.isCapturing ? '1' : '0'};
+  transform: ${props => props.isCapturing ? 'none' : 'translateY(20px)'};
 `;
 
 const FaceContainer = styled.div`
@@ -162,8 +179,8 @@ const FaceContainer = styled.div`
 `;
 
 const FaceImage = styled.img`
-  width: 120%;
-  height: 120%;
+  width: auto;
+  height: 130%;
   position: absolute;
   top: 50%;
   left: 50%;
@@ -171,7 +188,7 @@ const FaceImage = styled.img`
   pointer-events: none;
   z-index: 1;
   opacity: 0.7;
-  object-fit: cover;
+  object-fit: contain;
 `;
 
 // 각 항목들의 배치를 위한 스타일 컴포넌트
@@ -218,8 +235,8 @@ const ColorCircle = styled.div<{ color: string, screenSize: 'extraSmall' | 'smal
   margin-top: 2px;
 `;
 
-const ButtonsContainer = styled.div`
-  display: flex;
+const ButtonsContainer = styled.div<{ isVisible: boolean, isCapturing?: boolean }>`
+  display: ${props => props.isVisible ? 'flex' : 'none'};
   gap: 16px;
   position: absolute;
   bottom: 20px;
@@ -229,6 +246,9 @@ const ButtonsContainer = styled.div`
   width: 100%;
   justify-content: center;
   z-index: 10;
+  animation: ${props => props.isCapturing ? 'none' : fadeIn} 0.8s ease-out 0.6s forwards;
+  opacity: ${props => props.isCapturing ? '1' : '0'};
+  transform: ${props => props.isCapturing ? 'none' : 'translateY(20px)'};
 `;
 
 const Button = styled.button`
@@ -257,13 +277,13 @@ const Button = styled.button`
   }
 `;
 
-const InterpretButton = styled.button`
+const InterpretButton = styled.button<{ isVisible: boolean, isCapturing?: boolean }>`
   position: relative;
-  margin: 20px auto 50px auto;
+  margin: 40px auto;
   width: 100%;
   max-width: 500px;
   height: 60px;
-  display: flex;
+  display: ${props => props.isVisible ? 'flex' : 'none'};
   justify-content: center;
   align-items: center;
   background-color: rgba(234, 213, 161, 0.9);
@@ -279,6 +299,9 @@ const InterpretButton = styled.button`
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   z-index: 10;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  animation: ${props => props.isCapturing ? 'none' : fadeIn} 0.8s ease-out 0.9s forwards;
+  opacity: ${props => props.isCapturing ? '1' : '0'};
+  transform: ${props => props.isCapturing ? 'none' : 'translateY(20px)'};
   
   &:active {
     transform: scale(0.98);
@@ -321,8 +344,11 @@ function debounce(func: Function, wait: number) {
 }
 
 const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userName = '진원' }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const [screenSize, setScreenSize] = useState<'extraSmall' | 'small' | 'medium' | 'large'>('medium');
+  const [showButtons, setShowButtons] = useState<boolean>(true);
+  const [isCapturing, setIsCapturing] = useState<boolean>(false);
   
   // 화면 크기에 따라 텍스트 크기 조정 - 최적화된 버전
   const handleResize = useCallback(debounce(() => {
@@ -364,17 +390,41 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
   
   // 카드 저장 함수 구현
   const saveCard = () => {
-    if (cardRef.current) {
-      html2canvas(cardRef.current).then(canvas => {
-        // 캔버스를 이미지로 변환
-        const image = canvas.toDataURL('image/png');
-        // 다운로드 링크 생성
-        const link = document.createElement('a');
-        link.href = image;
-        link.download = `관상데이터카드_${userName}_${new Date().toISOString().slice(0, 10)}.png`;
-        // 다운로드 링크 클릭
-        link.click();
-      });
+    if (containerRef.current) {
+      // 캡처 모드 활성화
+      setIsCapturing(true);
+      
+      // 약간의 지연 후 캡처 실행 (상태 업데이트가 반영될 시간을 위해)
+      setTimeout(() => {
+        html2canvas(containerRef.current!, {
+          scale: 4,
+          useCORS: true,
+          logging: false,
+          backgroundColor: '#EAEAEA',
+          onclone: (clonedDoc) => {
+            // 복제된 문서에서 버튼들을 숨김
+            const buttonsContainer = clonedDoc.querySelector('.buttons-container') as HTMLElement;
+            const interpretButton = clonedDoc.querySelector('.interpret-button') as HTMLElement;
+            if (buttonsContainer) buttonsContainer.style.display = 'none';
+            if (interpretButton) interpretButton.style.display = 'none';
+          }
+        }).then(canvas => {
+          // 캔버스를 이미지로 변환
+          const image = canvas.toDataURL('image/png');
+          // 다운로드 링크 생성
+          const link = document.createElement('a');
+          link.href = image;
+          link.download = `관상데이터카드_${userName}_${new Date().toISOString().slice(0, 10)}.png`;
+          // 다운로드 링크 클릭
+          link.click();
+          
+          // 캡처 모드 비활성화
+          setIsCapturing(false);
+          
+          // 저장 완료 후 콜백 호출
+          onSave();
+        });
+      }, 100);
     }
   };
 
@@ -400,12 +450,12 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
   return (
     <>
       <GlobalStyle />
-      <Container>
-        <Header>
+      <Container ref={containerRef}>
+        <Header isCapturing={isCapturing}>
           <HeaderSubtitle>분석을 위한 <BoldText>{userName}</BoldText>님의 <br /> <BoldText>관상 데이터 카드</BoldText>입니다.</HeaderSubtitle>
         </Header>
 
-        <Card ref={cardRef}>
+        <Card ref={cardRef} isCapturing={isCapturing}>
           <FaceContainer>
             <FaceImage src={`${process.env.PUBLIC_URL}/images/result_face.png`} alt="Face Analysis" />
             
@@ -494,17 +544,14 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
             </DataItem>
           </FaceContainer>
           
-          <ButtonsContainer>
+          <ButtonsContainer isVisible={showButtons} isCapturing={isCapturing} className="buttons-container">
             <Button onClick={onRetake}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 4V2M12 4C7.58172 4 4 7.58172 4 12M12 4C16.4183 4 20 7.58172 20 12M4 12C4 16.4183 7.58172 20 12 20M4 12H2M20 12H22M12 20C16.4183 20 20 16.4183 20 12M12 20V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
               </svg>
               다시 찍기
             </Button>
-            <Button onClick={() => {
-              saveCard();
-              onSave();
-            }}>
+            <Button onClick={saveCard}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2"/>
                 <path d="M8 4V9H16V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -516,7 +563,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
           </ButtonsContainer>
         </Card>
 
-        <InterpretButton>
+        <InterpretButton isVisible={showButtons} isCapturing={isCapturing} className="interpret-button">
           Interpret with AI
         </InterpretButton>
 
