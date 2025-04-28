@@ -139,7 +139,7 @@ const drawFeatureBar = ({
   const barRadius = 5; // 바의 border-radius
   
   // 바 배경 그리기 (라운딩 적용)
-  ctx.fillStyle = '#333333';
+  ctx.fillStyle ='rgba(255, 255, 255, 0.2)';
   drawRoundedRect(ctx, boxX + 90, barY, barWidth, barHeight, barRadius);
   
   // 값에 따른 바 너비 계산
@@ -154,7 +154,7 @@ const drawFeatureBar = ({
   }
   
   // 바 채우기 (라운딩 적용)
-  ctx.fillStyle = '#75C076'; // 연두색
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.8)'; // 연두색
   
   // 채워지는 너비가 전체 너비보다 작은 경우 왼쪽 모서리만 둥글게
   if (fillWidth < barWidth) {
@@ -542,7 +542,7 @@ export const drawFaceAnalysisBox = ({
   const flippedBoxX = canvasWidth - boxX - boxWidth;
   
   // 최소 박스 표시 임계값 설정
-  const MIN_BOX_HEIGHT = 30; // 최소 박스 높이 (픽셀)
+  const MIN_BOX_HEIGHT = 20; // 최소 박스 높이 (픽셀)
   
   // 박스 크기가 너무 작으면 전체 박스를 표시하지 않음
   if (boxHeight < MIN_BOX_HEIGHT) {
@@ -556,7 +556,7 @@ export const drawFaceAnalysisBox = ({
   const cornerRadius = 20;
   
   // 박스 배경 (반투명 검정색 + 라운딩)
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.5)'; // 불투명도 높임
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'; // 불투명도 높임
   drawRoundedRect(ctx, flippedBoxX, boxY, boxWidth, boxHeight, cornerRadius);
   
   // 박스 테두리 (라운딩 적용)

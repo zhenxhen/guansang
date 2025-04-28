@@ -1,46 +1,104 @@
-# Getting Started with Create React App
+# 관상 앱 (Guansang App)
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+얼굴 특징을 분석하고 시각화하는 웹 애플리케이션입니다. MediaPipe의 Face Landmark 기술을 활용하여 실시간으로 얼굴의 비율, 대칭성, 눈, 코, 입 등의 특징을 분석합니다.
 
-## Available Scripts
+## 주요 기능
 
-In the project directory, you can run:
+- 실시간 얼굴 인식 및 랜드마크 추적
+- 얼굴 대칭성 및 비율 분석
+- 눈, 코, 입 등 세부 특징 측정
+- 시각적 피드백 및 결과 표시
+- 모바일 및 데스크톱 환경 지원
 
-### `npm start`
+## 기술 스택
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+- React.js: 프론트엔드 UI 구현
+- TypeScript: 타입 안전성과 개발 효율성 강화
+- MediaPipe: 얼굴 랜드마크 인식 및 추적
+- Canvas API: 시각적 효과 및 그래픽 처리
+- 반응형 디자인: 다양한 화면 크기 지원
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## 프로젝트 구조
 
-### `npm test`
+```
+src/
+├── components/           # 리액트 컴포넌트
+│   ├── WebcamDetection.tsx  # 웹캠 인식 및 주요 처리 컴포넌트
+│   ├── FaceAnalysisBox.tsx  # 얼굴 분석 결과 표시 컴포넌트
+│   └── ...
+├── constants/            # 상수 정의
+│   ├── UIConstants.ts    # UI 관련 상수
+│   ├── ColorConstants.ts # 색상 관련 상수
+│   └── ...
+├── types/                # 타입 정의
+│   ├── FaceFeatures.ts   # 얼굴 특징 관련 인터페이스
+│   └── ...
+├── utils/                # 유틸리티 함수
+│   ├── analysis/         # 분석 관련 유틸리티
+│   │   ├── FacialAnalysisUtils.ts
+│   │   └── MediaPipeUtils.ts
+│   ├── graphics/         # 그래픽 관련 유틸리티
+│   │   └── GraphicsUtils.ts
+│   ├── ui/               # UI 관련 유틸리티
+│   │   └── UIUtils.ts
+│   └── ...
+└── ...
+```
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## 시작하기
 
-### `npm run build`
+### 필요 조건
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Node.js 14.x 이상
+- npm 또는 yarn
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### 설치 및 실행
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. 저장소 복제
+   ```bash
+   git clone https://github.com/yourusername/guansang-app.git
+   cd guansang-app
+   ```
 
-### `npm run eject`
+2. 의존성 설치
+   ```bash
+   npm install
+   # 또는
+   yarn
+   ```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+3. 개발 서버 실행
+   ```bash
+   npm start
+   # 또는
+   yarn start
+   ```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+4. 브라우저에서 앱 열기
+   ```
+   http://localhost:3000
+   ```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## 빌드
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+프로덕션용 빌드:
 
-## Learn More
+```bash
+npm run build
+# 또는
+yarn build
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 작동 방식
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+1. 웹캠을 통해 얼굴을 인식합니다.
+2. MediaPipe의 Face Landmarker가 468개의 얼굴 랜드마크를 추적합니다.
+3. 랜드마크 좌표를 기반으로 얼굴 특징을 계산합니다.
+4. 계산된 특징을 Canvas에 시각화하고 분석 결과를 표시합니다.
+5. 사용자는 실시간으로 얼굴 분석 결과를 확인할 수 있습니다.
+
+## 주의사항
+
+- 카메라 접근 권한이 필요합니다.
+- 최신 웹 브라우저(Chrome, Firefox, Safari)에서 사용을 권장합니다.
+- 충분한 조명이 있는 환경에서 사용하는 것이 좋습니다.
