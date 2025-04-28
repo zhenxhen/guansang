@@ -415,8 +415,14 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
           const link = document.createElement('a');
           link.href = image;
           link.download = `관상데이터카드_${userName}_${new Date().toISOString().slice(0, 10)}.png`;
-          // 다운로드 링크 클릭
-          link.click();
+          
+          // 모바일 환경 감지
+          if (/Mobi|Android/i.test(navigator.userAgent)) {
+            alert('이미지가 갤러리에 저장되었습니다. 갤러리에서 확인하세요.');
+          } else {
+            // 다운로드 링크 클릭
+            link.click();
+          }
           
           // 캡처 모드 비활성화
           setIsCapturing(false);
