@@ -164,7 +164,7 @@ const Card = styled.div<{ isCapturing?: boolean }>`
   aspect-ratio: 1 / 1.5;
   box-sizing: border-box;
   overflow: hidden;
-  animation: ${props => props.isCapturing ? 'none' : fadeIn} 0.8s ease-out 0.3s forwards;
+  animation: ${props => props.isCapturing ? 'none' : fadeIn} 1s ease-out 0.3s forwards;
   opacity: ${props => props.isCapturing ? '1' : '0'};
   transform: ${props => props.isCapturing ? 'none' : 'translateY(20px)'};
 `;
@@ -246,7 +246,7 @@ const ButtonsContainer = styled.div<{ isVisible: boolean, isCapturing?: boolean 
   width: 100%;
   justify-content: center;
   z-index: 10;
-  animation: ${props => props.isCapturing ? 'none' : fadeIn} 0.8s ease-out 0.6s forwards;
+  animation: ${props => props.isCapturing ? 'none' : fadeIn} 0.8s ease-out 1.5s forwards;
   opacity: ${props => props.isCapturing ? '1' : '0'};
   transform: ${props => props.isCapturing ? 'none' : 'translateY(20px)'};
 `;
@@ -299,7 +299,7 @@ const InterpretButton = styled.button<{ isVisible: boolean, isCapturing?: boolea
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   z-index: 10;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-  animation: ${props => props.isCapturing ? 'none' : fadeIn} 0.8s ease-out 0.9s forwards;
+  animation: ${props => props.isCapturing ? 'none' : fadeIn} 0.8s ease-out 2s forwards;
   opacity: ${props => props.isCapturing ? '1' : '0'};
   transform: ${props => props.isCapturing ? 'none' : 'translateY(20px)'};
   
