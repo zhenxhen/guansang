@@ -14,9 +14,24 @@ const GlobalStyle = createGlobalStyle`
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background-color: #EAEAEA;
+    background-image: url('${process.env.PUBLIC_URL}/images/background.png');
+    background-color: #EEF4FA;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    width: 100%;
+    height: 100%;
   }
 `;
+
+const eng = {
+  fontFamily: 'Rockwell',
+  fontWeight: '400',
+  fontSize: '14px',
+  fontStyle: 'italic',
+  textDecoration: 'underline',
+}
 
 // 화면 크기에 따른 스타일을 정의하는 미디어 쿼리
 const responsiveStyles = {
@@ -95,7 +110,7 @@ const Container = styled.div`
   min-height: 100vh;
   width: 100vw;
   height: 100vh;
-  background-color: #EAEAEA;
+  background: transparent;
   padding: 0;
   margin: 0;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
@@ -130,21 +145,34 @@ const Header = styled.div<{ isCapturing?: boolean }>`
   transform: ${props => props.isCapturing ? 'none' : 'translateY(20px)'};
 `;
 
+const Logo = styled.img`
+  width: 300px;
+  height: auto;
+  margin-bottom: 15px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.5;
+  z-index: 1;
+`;
+
 const HeaderTitle = styled.h1`
   font-size: 18px;
-  color: #9A9A9A;
+  color: #9F9F9F;
   font-weight: 800;
   font-family: 'Pretendard', sans-serif;
 `;
 
 const HeaderSubtitle = styled.h2`
-  font-size: 18px;
-  color: #9A9A9A;
-  font-weight: 400;
-  margin-top: 10px;
+  font-size: 14px;
+  color: #4D4D4D;
+  font-weight: 800;
+  margin-top: -10px;
   margin-bottom: 10px;
   padding-bottom: 0px;
   font-family: 'Pretendard', sans-serif;
+  font-style: italic;
 `;
 
 const BoldText = styled.span`
@@ -153,15 +181,15 @@ const BoldText = styled.span`
 
 const Card = styled.div<{ isCapturing?: boolean }>`
   background-color: white;
-  border-radius: 24px;
+  border-radius: 10px;
   padding: 20px;
   width: 100%;
   max-width: 480px;
-  box-shadow: 0 4px 20px rgba(212, 192, 145, 0.4);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
   margin-bottom: 10px;
   position: relative;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-  aspect-ratio: 1 / 1.5;
+  aspect-ratio: 1 / 1.8;
   box-sizing: border-box;
   overflow: hidden;
   animation: ${props => props.isCapturing ? 'none' : fadeIn} 1s ease-out 0.3s forwards;
@@ -215,9 +243,9 @@ const DataItem = styled.div<{
 
 const DataLabel = styled.span<{ screenSize: 'extraSmall' | 'small' | 'medium' | 'large' }>`
   font-size: ${props => responsiveStyles[props.screenSize].labelSize};
-  color: #B58851;
+  color: #9F9F9F;
   margin-bottom: 2px;
-  font-weight: 500;
+  font-weight: 800;
   white-space: nowrap;
 `;
 
@@ -259,17 +287,17 @@ const Button = styled.button`
   background-color:rgba(210, 210, 210, 0.57);
   color: white;
   border: none;
-  border-radius: 15px;
+  border-radius: 20px;
   font-size: 12px;
   font-weight: 800;
   cursor: pointer;
   transition: background-color 0.2s;
-  width: 100px;
+  width: 40px;
   height: 40px;
   font-family: 'Pretendard', sans-serif;
 
   &:hover {
-    background-color: #555555;
+    background-color: #D2D2D2;
   }
 
   & svg {
@@ -279,26 +307,27 @@ const Button = styled.button`
 
 const InterpretButton = styled.button<{ isVisible: boolean, isCapturing?: boolean }>`
   position: relative;
-  margin: 40px auto;
-  width: 100%;
-  max-width: 500px;
-  height: 60px;
+  margin: 20px auto;
+  width: 200px;
+  height: 40px;
   display: ${props => props.isVisible ? 'flex' : 'none'};
   justify-content: center;
   align-items: center;
-  background-color: rgba(234, 213, 161, 0.9);
+  background-color: rgba(0, 0, 0, 0.9);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   color: white;
   border: none;
   border-radius: 15px;
-  font-size: 16px;
-  font-weight: 600;
-  box-shadow: 0 4px 8px rgba(212, 192, 145, 0.7);
+  font-size: 14px;
+  font-weight: 400;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   z-index: 10;
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  font-family: 'Rockwell', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  font-weight: 400;
+  font-style: italic;
   animation: ${props => props.isCapturing ? 'none' : fadeIn} 0.8s ease-out 2s forwards;
   opacity: ${props => props.isCapturing ? '1' : '0'};
   transform: ${props => props.isCapturing ? 'none' : 'translateY(20px)'};
@@ -318,7 +347,7 @@ const Footer = styled.div`
   padding-bottom: 10px;
   padding-top: 10px;
   width: 100%;
-  background-color: #EAEAEA;
+  background: transparent;
   font-family: 'Pretendard', sans-serif;
   z-index: 5;
 `;
@@ -328,6 +357,23 @@ const Copyright = styled.div`
   font-size: 9px;
   font-family: 'Pretendard', sans-serif;
   margin-top: 8px;
+`;
+
+// 배경 이미지를 위한 컴포넌트 추가
+const BackgroundImage = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  background-image: url('${process.env.PUBLIC_URL}/images/background.png');
+  background-size: 200%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  opacity: 0.3;
+  pointer-events: none;
 `;
 
 // 디바운스 함수 추가
@@ -400,7 +446,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
           scale: 4,
           useCORS: true,
           logging: false,
-          backgroundColor: '#EAEAEA',
+          backgroundColor: null,
           onclone: (clonedDoc) => {
             // 복제된 문서에서 버튼들을 숨김
             const buttonsContainer = clonedDoc.querySelector('.buttons-container') as HTMLElement;
@@ -477,7 +523,13 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
     document.body.style.margin = '0';
     document.body.style.padding = '0';
     document.body.style.overflow = 'hidden';
-    document.body.style.backgroundColor = '#EAEAEA';
+    document.body.style.backgroundImage = `url('/images/background.png')`;
+    document.body.style.backgroundSize = 'cover';
+    document.body.style.backgroundPosition = 'center';
+    document.body.style.backgroundRepeat = 'no-repeat';
+    document.body.style.backgroundAttachment = 'fixed';
+    document.body.style.width = '100%';
+    document.body.style.height = '100%';
     
     // 컴포넌트 언마운트 시 복원
     return () => {
@@ -491,13 +543,17 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
     <>
       <GlobalStyle />
       <Container ref={containerRef}>
+        <BackgroundImage />
         <Header isCapturing={isCapturing}>
-          <HeaderSubtitle>분석을 위한 <BoldText>{userName}</BoldText>님의 <br /> <BoldText>관상 데이터 카드</BoldText>입니다.</HeaderSubtitle>
+          <div style={{ position: 'relative' }}>
+            <Logo src={`${process.env.PUBLIC_URL}/images/icon/logo.svg`} alt="로고" />
+            <HeaderSubtitle style={{ position: 'relative', zIndex: 2 }}> {userName} <br /><BoldText style={eng}> Guansang data card </BoldText>  </HeaderSubtitle>
+          </div>
         </Header>
 
         <Card ref={cardRef} isCapturing={isCapturing}>
           <FaceContainer>
-            <FaceImage src={`${process.env.PUBLIC_URL}/images/result_face.png`} alt="Face Analysis" />
+            <FaceImage src={`${process.env.PUBLIC_URL}/images/result.png`} alt="Face Analysis" />
             
             {/* 상단 측정 결과 */}
             <DataItem top="4%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
@@ -508,13 +564,13 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
             {/* 왼쪽 상단 */}
             <DataItem top="12%" left="8%" textAlign="left" screenSize={screenSize}>
               <DataLabel screenSize={screenSize}>왼쪽 눈 색상</DataLabel>
-              <ColorCircle color={result.eyeIrisColor_L || '#130603'} style={{ margin: '0 auto' }} screenSize={screenSize} />
+              <ColorCircle color={result.eyeIrisColor_L} style={{ margin: '0 auto' }} screenSize={screenSize} />
             </DataItem>
             
             {/* 오른쪽 상단 */}
             <DataItem top="12%" right="8%" textAlign="right" screenSize={screenSize}>
               <DataLabel screenSize={screenSize}>오른쪽 눈 색상</DataLabel>
-              <ColorCircle color={result.eyeIrisColor_R || '#190705'} style={{ margin: '0 auto' }} screenSize={screenSize} />
+              <ColorCircle color={result.eyeIrisColor_R} style={{ margin: '0 auto' }} screenSize={screenSize} />
             </DataItem>
             
             {/* 얼굴 대칭성 - 위로 올림 */}
@@ -574,31 +630,22 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
             {/* 피부 색상 - 위로 올림 */}
             <DataItem bottom="25%" left="25%" textAlign="center" screenSize={screenSize}>
               <DataLabel screenSize={screenSize}>피부 색상</DataLabel>
-              <ColorCircle color={result.skinToneColor || '#c6b7b0'} style={{ margin: '0 auto' }} screenSize={screenSize} />
+              <ColorCircle color={result.skinToneColor} style={{ margin: '0 auto' }} screenSize={screenSize} />
             </DataItem>
             
             {/* 다크서클 색상 - 위로 올림 */}
             <DataItem bottom="25%" right="25%" textAlign="center" screenSize={screenSize}>
               <DataLabel screenSize={screenSize}>다크서클 색상</DataLabel>
-              <ColorCircle color={result.eyeDarkCircleColor || '#807673'} style={{ margin: '0 auto' }} screenSize={screenSize} />
+              <ColorCircle color={result.eyeDarkCircleColor} style={{ margin: '0 auto' }} screenSize={screenSize} />
             </DataItem>
           </FaceContainer>
           
           <ButtonsContainer isVisible={showButtons} isCapturing={isCapturing} className="buttons-container">
             <Button onClick={onRetake}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 4V2M12 4C7.58172 4 4 7.58172 4 12M12 4C16.4183 4 20 7.58172 20 12M4 12C4 16.4183 7.58172 20 12 20M4 12H2M20 12H22M12 20C16.4183 20 20 16.4183 20 12M12 20V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              다시 찍기
+              <img src={`${process.env.PUBLIC_URL}/images/icon/retake.svg`} alt="retake" />
             </Button>
             <Button onClick={saveCard}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2"/>
-                <path d="M8 4V9H16V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M8 12H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M8 16H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              카드 저장
+              <img src={`${process.env.PUBLIC_URL}/images/icon/save.svg`} alt="save" />
             </Button>
           </ButtonsContainer>
         </Card>
