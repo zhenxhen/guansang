@@ -216,9 +216,9 @@ export const FACE_RATIO_WEIGHTS = {
 export const TYPOGRAPHY = {
   // 폰트 패밀리
   FONT_FAMILY: {
-    PRIMARY: "'Noto Sans KR', sans-serif",
-    SECONDARY: "'Roboto', sans-serif",
-    MONOSPACE: "'Roboto Mono', monospace"
+    PRIMARY: "'Rockwell', 'Noto Sans KR', sans-serif",
+    SECONDARY: "'Rockwell', 'Roboto', sans-serif",
+    MONOSPACE: "'Rockwell', 'Roboto Mono', monospace"
   },
   
   // 폰트 사이즈

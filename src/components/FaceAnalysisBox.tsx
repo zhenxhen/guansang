@@ -106,7 +106,7 @@ const drawFeatureBar = ({
   ctx
 }: FaceFeatureBarProps) => {
   // 글자 스타일 설정
-  ctx.font = 'bold 12px Arial';
+  ctx.font = 'italic bold 12px Rockwell';
   ctx.textBaseline = 'middle';
   
   // 라벨 표시
@@ -227,7 +227,7 @@ const drawNoseVerticalBox = (
   ctx.stroke();
   
   // 코 길이 텍스트 표시
-  ctx.font = `bold ${12 * scale}px Arial`;
+  ctx.font = `italic ${12 * scale}px Rockwell`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#FFFFFF';
@@ -288,7 +288,7 @@ const drawEyebrowHorizontalBox = (
   ctx.stroke();
   
   // 텍스트 스타일 설정
-  ctx.font = `bold ${12 * scale}px Arial`;
+  ctx.font = `italic ${12 * scale}px Rockwell`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#FFFFFF';
@@ -411,7 +411,7 @@ const drawNoseCircles = (
     },
     // 텍스트 스타일
     text: {
-      font: `bold ${12 * scale}px Arial`, // 폰트 크기도 거리에 따라 조절
+      font: `italic ${12 * scale}px Rockwell`, // 폰트 크기도 거리에 따라 조절
       fillColor: '#FFFFFF', // 검정색 텍스트
       shadowColor: 'rgba(255, 255, 255, 0.0)',
       shadowBlur: 2 * scale,
@@ -536,7 +536,7 @@ export const drawFaceAnalysisBox = ({
   ctx.translate(canvasWidth, 0);
   
   // 2. x축 방향으로 -1 스케일링 (좌우 반전)
-  ctx.scale(-1, 1);
+  ctx.scale(-1, 1.05);
   
   // 원래 좌표에서 반전된 좌표 계산
   const flippedBoxX = canvasWidth - boxX - boxWidth;
@@ -553,10 +553,10 @@ export const drawFaceAnalysisBox = ({
   // 블러 효과는 캔버스 API 한계로 직접적으로 구현하기 어려우므로 대신 반투명 효과 강화
   
   // 모서리 반경
-  const cornerRadius = 20;
+  const cornerRadius = 5;
   
   // 박스 배경 (반투명 검정색 + 라운딩)
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'; // 불투명도 높임
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.0)'; // 불투명도 높임
   drawRoundedRect(ctx, flippedBoxX, boxY, boxWidth, boxHeight, cornerRadius);
   
   // 박스 테두리 (라운딩 적용)
@@ -582,7 +582,7 @@ export const drawFaceAnalysisBox = ({
     label: 'fWHR',
     value: faceRatioValue,
     displayValue: actualRatio,
-    position: 0.33,
+    position: 0.35,
     boxX: flippedBoxX,
     boxY,
     boxWidth,

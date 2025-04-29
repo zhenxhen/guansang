@@ -23,19 +23,19 @@ const ButtonContainer = styled.div<{ show: boolean }>`
   left: 0;
   right: 0;
   margin: 0 auto;
-  width: 330px;
-  height: 60px;
+  width: 200px;
+  height: 40px;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(234, 213, 161, 0.8);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   color: white;
   border-radius: 15px;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 600;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
   cursor: pointer;
   opacity: ${({ show }) => (show ? 1 : 0)};
   visibility: ${({ show }) => (show ? 'visible' : 'hidden')};
@@ -43,7 +43,10 @@ const ButtonContainer = styled.div<{ show: boolean }>`
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   z-index: 1000;
   pointer-events: ${({ show }) => (show ? 'auto' : 'none')};
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  font-family: 'Rockwell', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  font-weight: 400;
+  font-style: italic;
+  
   
   &:active {
     transform: scale(0.98);

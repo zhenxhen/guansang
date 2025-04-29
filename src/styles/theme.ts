@@ -131,8 +131,8 @@ export const lightTheme: Theme = {
   },
   fonts: {
     family: {
-      primary: 'helvetica, arial, sans-serif',
-      secondary: 'georgia, serif',
+      primary: "'Rockwell', helvetica, arial, sans-serif",
+      secondary: "'Rockwell', georgia, serif",
     },
     size: {
       small: '12px',
