@@ -106,7 +106,7 @@ const drawFeatureBar = ({
   ctx
 }: FaceFeatureBarProps) => {
   // 글자 스타일 설정
-  ctx.font = 'bold 12px Arial';
+  ctx.font = 'bold 12px Pretendard';
   ctx.textBaseline = 'middle';
   
   // 라벨 표시
@@ -136,10 +136,10 @@ const drawFeatureBar = ({
   const barY = boxY + boxHeight * position - 7;
   const barHeight = 10;
   const barWidth = boxWidth - 170;
-  const barRadius = 5; // 바의 border-radius
+  const barRadius = 3; // 바의 border-radius
   
   // 바 배경 그리기 (라운딩 적용)
-  ctx.fillStyle ='rgba(255, 255, 255, 0.2)';
+  ctx.fillStyle ='rgba(255, 255, 255, 0.1)';
   drawRoundedRect(ctx, boxX + 90, barY, barWidth, barHeight, barRadius);
   
   // 값에 따른 바 너비 계산
@@ -536,7 +536,7 @@ export const drawFaceAnalysisBox = ({
   ctx.translate(canvasWidth, 0);
   
   // 2. x축 방향으로 -1 스케일링 (좌우 반전)
-  ctx.scale(-1, 1);
+  ctx.scale(-1, 1.05);
   
   // 원래 좌표에서 반전된 좌표 계산
   const flippedBoxX = canvasWidth - boxX - boxWidth;
@@ -553,7 +553,7 @@ export const drawFaceAnalysisBox = ({
   // 블러 효과는 캔버스 API 한계로 직접적으로 구현하기 어려우므로 대신 반투명 효과 강화
   
   // 모서리 반경
-  const cornerRadius = 20;
+  const cornerRadius = 5;
   
   // 박스 배경 (반투명 검정색 + 라운딩)
   ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'; // 불투명도 높임
