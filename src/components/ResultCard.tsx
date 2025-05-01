@@ -95,7 +95,7 @@ const Container = styled.div`
   min-height: 100vh;
   width: 100vw;
   height: 100vh;
-  background-color: #EAEAEA;
+  background-color: #F6F6F6;
   padding: 0;
   margin: 0;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
@@ -139,15 +139,15 @@ const BoldText = styled.span`
 
 const Card = styled.div`
   background-color: white;
-  border-radius: 24px;
+  border-radius: 5px;
   padding: 20px;
   width: 100%;
-  max-width: 500px;
-  box-shadow: 0 4px 20px rgba(212, 192, 145, 0.4);
+  max-width: 340px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   margin-bottom: 10px;
   position: relative;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-  aspect-ratio: 1 / 1.5;
+  aspect-ratio: 1 / 2;
   box-sizing: border-box;
   overflow: hidden;
 `;
@@ -198,7 +198,7 @@ const DataItem = styled.div<{
 
 const DataLabel = styled.span<{ screenSize: 'extraSmall' | 'small' | 'medium' | 'large' }>`
   font-size: ${props => responsiveStyles[props.screenSize].labelSize};
-  color: #B58851;
+  color: #9F9F9F;
   margin-bottom: 2px;
   font-weight: 500;
   white-space: nowrap;
@@ -236,15 +236,13 @@ const Button = styled.button`
   align-items: center;
   justify-content: center;
   padding: 0;
-  background-color:rgba(210, 210, 210, 0.57);
+  background-color:rgba(210, 210, 210, 0.7);
   color: white;
   border: none;
   border-radius: 15px;
-  font-size: 12px;
-  font-weight: 800;
   cursor: pointer;
   transition: background-color 0.2s;
-  width: 100px;
+  width: 40px;
   height: 40px;
   font-family: 'Pretendard', sans-serif;
 
@@ -252,29 +250,30 @@ const Button = styled.button`
     background-color: #555555;
   }
 
-  & svg {
-    margin-right: 8px;
+  & img {
+    width: 18px;
+    height: 18px;
+    object-fit: contain;
   }
 `;
 
 const InterpretButton = styled.button`
   position: relative;
-  margin: 20px auto 50px auto;
+  margin: 20px auto 120px;
   width: 100%;
-  max-width: 500px;
+  max-width: 300px;
   height: 60px;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(234, 213, 161, 0.9);
+  background-color: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   color: white;
   border: none;
-  border-radius: 15px;
-  font-size: 18px;
+  border-radius: 5px;
+  font-size: 14px;
   font-weight: 600;
-  box-shadow: 0 4px 8px rgba(212, 192, 145, 0.7);
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   z-index: 10;
@@ -288,14 +287,14 @@ const InterpretButton = styled.button`
 
 const Footer = styled.div`
   position: fixed;
-  bottom: 0;
+  bottom: 60px;
   left: 0;
   right: 0;
   text-align: center;
   padding-bottom: 10px;
   padding-top: 10px;
   width: 100%;
-  background-color: #EAEAEA;
+  background: transparent;
   font-family: 'Pretendard', sans-serif;
   z-index: 5;
 `;
@@ -326,17 +325,8 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
   
   // 화면 크기에 따라 텍스트 크기 조정 - 최적화된 버전
   const handleResize = useCallback(debounce(() => {
-    const windowWidth = window.innerWidth;
-    
-    if (windowWidth <= 375) {
-      setScreenSize('extraSmall');
-    } else if (windowWidth < 450) {
-      setScreenSize('small');
-    } else if (windowWidth < 550) {
-      setScreenSize('medium');
-    } else {
-      setScreenSize('large');
-    }
+    // 모든 화면 크기에서 medium 사이즈로 통일
+    setScreenSize('medium');
   }, 100), []);
   
   useEffect(() => {
@@ -402,7 +392,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
       <GlobalStyle />
       <Container>
         <Header>
-          <HeaderSubtitle>분석을 위한 <BoldText>{userName}</BoldText>님의 <br /> <BoldText>관상 데이터 카드</BoldText>입니다.</HeaderSubtitle>
+          <img src={`${process.env.PUBLIC_URL}/images/icon/logo-white.png`} alt="관상 로고" style={{ height: '50px', marginBottom: '-10px' }} />
         </Header>
 
         <Card ref={cardRef}>
@@ -496,22 +486,13 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
           
           <ButtonsContainer>
             <Button onClick={onRetake}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 4V2M12 4C7.58172 4 4 7.58172 4 12M12 4C16.4183 4 20 7.58172 20 12M4 12C4 16.4183 7.58172 20 12 20M4 12H2M20 12H22M12 20C16.4183 20 20 16.4183 20 12M12 20V22" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              다시 찍기
+              <img src={`${process.env.PUBLIC_URL}/images/icon/retake.png`} alt="다시 찍기" />
             </Button>
             <Button onClick={() => {
               saveCard();
               onSave();
             }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2"/>
-                <path d="M8 4V9H16V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M8 12H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                <path d="M8 16H13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-              카드 저장
+              <img src={`${process.env.PUBLIC_URL}/images/icon/save.png`} alt="카드 저장" />
             </Button>
           </ButtonsContainer>
         </Card>
