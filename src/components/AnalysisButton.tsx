@@ -19,12 +19,12 @@ const fadeInUp = keyframes`
 
 const ButtonContainer = styled.div<{ show: boolean }>`
   position: absolute;
-  bottom: 120px;
+  bottom: 150px;
   left: 0;
   right: 0;
   margin: 0 auto;
-  width: 300px;
-  height: 60px;
+  width: 250px;
+  height: 50px;
   display: flex;
   justify-content: center;
   align-items: center;

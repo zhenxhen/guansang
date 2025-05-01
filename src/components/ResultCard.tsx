@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import styled, { createGlobalStyle, css } from 'styled-components';
+import styled, { createGlobalStyle, css, keyframes } from 'styled-components';
 import html2canvas from 'html2canvas';
 
 // 전역 스타일 설정
@@ -15,6 +15,29 @@ const GlobalStyle = createGlobalStyle`
     padding: 0;
     overflow: hidden;
     background-color: #EAEAEA;
+  }
+`;
+
+// CSS 애니메이션 완료 상태를 적용하는 전역 스타일
+const CaptureStyles = createGlobalStyle<{ forCapture: boolean }>`
+  ${props => props.forCapture && `
+    .animate-element {
+      opacity: 1 !important;
+      transform: translateY(0) !important;
+      animation: none !important;
+    }
+  `}
+`;
+
+// 애니메이션 정의
+const fadeInUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 `;
 
@@ -114,27 +137,10 @@ const Header = styled.div`
   margin-top: 20px;
   margin-bottom: 10px;
   width: 100%;
-`;
-
-const HeaderTitle = styled.h1`
-  font-size: 18px;
-  color: #9A9A9A;
-  font-weight: 800;
-  font-family: 'Pretendard', sans-serif;
-`;
-
-const HeaderSubtitle = styled.h2`
-  font-size: 18px;
-  color: #9A9A9A;
-  font-weight: 600;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  padding-bottom: 0px;
-  font-family: 'Pretendard', sans-serif;
-`;
-
-const BoldText = styled.span`
-  font-weight: 800;
+  opacity: 0;
+  animation: ${fadeInUp} 0.8s ease-out forwards;
+  animation-delay: 0.5s;
+  class-name: animate-element;
 `;
 
 const Card = styled.div`
@@ -143,13 +149,18 @@ const Card = styled.div`
   padding: 20px;
   width: 100%;
   max-width: 340px;
+  height: 630px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   margin-bottom: 10px;
   position: relative;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-  aspect-ratio: 1 / 2;
+  // aspect-ratio: 1 / 2;
   box-sizing: border-box;
   overflow: hidden;
+  opacity: 0;
+  animation: ${fadeInUp} 0.8s ease-out forwards;
+  animation-delay: 0.5s;
+  class-name: animate-element;
 `;
 
 const FaceContainer = styled.div`
@@ -229,6 +240,10 @@ const ButtonsContainer = styled.div`
   width: 100%;
   justify-content: center;
   z-index: 10;
+  opacity: 0;
+  animation: ${fadeInUp} 0.8s ease-out forwards;
+  animation-delay: 1.5s;
+  class-name: animate-element;
 `;
 
 const Button = styled.button`
@@ -261,8 +276,8 @@ const InterpretButton = styled.button`
   position: relative;
   margin: 20px auto 120px;
   width: 100%;
-  max-width: 300px;
-  height: 60px;
+  max-width: 250px;
+  height: 50px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -283,6 +298,11 @@ const InterpretButton = styled.button`
     transform: scale(0.98);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
+  
+  opacity: 0;
+  animation: ${fadeInUp} 0.8s ease-out forwards;
+  animation-delay: 2.5s;
+  class-name: animate-element;
 `;
 
 const Footer = styled.div`
@@ -321,7 +341,10 @@ function debounce(func: Function, wait: number) {
 
 const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userName = '진원' }) => {
   const cardRef = useRef<HTMLDivElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const [screenSize, setScreenSize] = useState<'extraSmall' | 'small' | 'medium' | 'large'>('medium');
+  const [animationsComplete, setAnimationsComplete] = useState(false);
+  const [forCapture, setForCapture] = useState(false);
   
   // 화면 크기에 따라 텍스트 크기 조정 - 최적화된 버전
   const handleResize = useCallback(debounce(() => {
@@ -352,22 +375,6 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
     };
   }, [handleResize]);
   
-  // 카드 저장 함수 구현
-  const saveCard = () => {
-    if (cardRef.current) {
-      html2canvas(cardRef.current).then(canvas => {
-        // 캔버스를 이미지로 변환
-        const image = canvas.toDataURL('image/png');
-        // 다운로드 링크 생성
-        const link = document.createElement('a');
-        link.href = image;
-        link.download = `관상데이터카드_${userName}_${new Date().toISOString().slice(0, 10)}.png`;
-        // 다운로드 링크 클릭
-        link.click();
-      });
-    }
-  };
-
   // body 스타일 설정을 위한 부수 효과
   React.useEffect(() => {
     // 원래 스타일 저장
@@ -385,17 +392,71 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
     };
   }, []);
   
+  // 애니메이션 완료 상태 설정
+  useEffect(() => {
+    // 모든 애니메이션 완료에 필요한 시간 계산
+    // 가장 긴 애니메이션 지연(2.5s) + 애니메이션 지속 시간(0.8s) + 여유(0.2s)
+    const totalAnimationTime = 2500 + 800 + 200;
+    
+    // 애니메이션 완료 후 상태 변경
+    const timer = setTimeout(() => {
+      setAnimationsComplete(true);
+    }, totalAnimationTime);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  // 화면 캡처 함수 구현
+  const captureScreen = () => {
+    // 캡처를 위해 애니메이션을 완료 상태로 설정
+    setForCapture(true);
+    
+    // DOM 업데이트가 완료된 후 캡처 실행
+    setTimeout(() => {
+      if (containerRef.current) {
+        html2canvas(containerRef.current, {
+          scale: 2, // 2배 크기로 저장
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: "#F6F6F6",
+          logging: true,
+        }).then(canvas => {
+          // 캔버스를 이미지로 변환
+          const image = canvas.toDataURL('image/png');
+          
+          // 다운로드 링크 생성
+          const link = document.createElement('a');
+          link.href = image;
+          link.download = `관상데이터카드_${userName}_${new Date().toISOString().slice(0, 10)}.png`;
+          
+          // 다운로드 링크 클릭
+          link.click();
+          
+          // 캡처 모드 해제
+          setForCapture(false);
+          
+          // 원래 동작 수행
+          onSave();
+        }).catch(error => {
+          console.error("캡처 오류:", error);
+          setForCapture(false);
+        });
+      }
+    }, 100); // DOM 업데이트를 위한 짧은 지연
+  };
+  
   if (!result) return null;
 
   return (
     <>
       <GlobalStyle />
-      <Container>
-        <Header>
+      <CaptureStyles forCapture={forCapture} />
+      <Container ref={containerRef}>
+        <Header className="animate-element">
           <img src={`${process.env.PUBLIC_URL}/images/icon/logo-white.png`} alt="관상 로고" style={{ height: '50px', marginBottom: '-10px' }} />
         </Header>
 
-        <Card ref={cardRef}>
+        <Card ref={cardRef} className="animate-element">
           <FaceContainer>
             <FaceImage src={`${process.env.PUBLIC_URL}/images/result_face.png`} alt="Face Analysis" />
             
@@ -484,20 +545,17 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
             </DataItem>
           </FaceContainer>
           
-          <ButtonsContainer>
+          <ButtonsContainer className="animate-element">
             <Button onClick={onRetake}>
               <img src={`${process.env.PUBLIC_URL}/images/icon/retake.png`} alt="다시 찍기" />
             </Button>
-            <Button onClick={() => {
-              saveCard();
-              onSave();
-            }}>
+            <Button onClick={captureScreen}>
               <img src={`${process.env.PUBLIC_URL}/images/icon/save.png`} alt="카드 저장" />
             </Button>
           </ButtonsContainer>
         </Card>
 
-        <InterpretButton>
+        <InterpretButton className="animate-element">
           Interpret with AI
         </InterpretButton>
 
