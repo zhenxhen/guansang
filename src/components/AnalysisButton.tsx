@@ -22,7 +22,7 @@ const ButtonContainer = styled.div<{ show: boolean }>`
   bottom: 120px;
   left: 0;
   right: 0;
-  margin: 0 autåo;
+  margin: 0 auto;
   width: 300px;
   height: 60px;
   display: flex;

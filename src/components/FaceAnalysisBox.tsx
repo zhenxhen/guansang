@@ -536,7 +536,7 @@ export const drawFaceAnalysisBox = ({
   ctx.translate(canvasWidth, 0);
   
   // 2. x축 방향으로 -1 스케일링 (좌우 반전)
-  ctx.scale(-1, 1.05);
+  ctx.scale(-1, 1);
   
   // 원래 좌표에서 반전된 좌표 계산
   const flippedBoxX = canvasWidth - boxX - boxWidth;
