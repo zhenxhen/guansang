@@ -162,7 +162,7 @@ const FaceContainer = styled.div`
 `;
 
 const FaceImage = styled.img`
-  width: 120%;
+  width: auto;
   height: 120%;
   position: absolute;
   top: 50%;
@@ -172,6 +172,7 @@ const FaceImage = styled.img`
   z-index: 1;
   opacity: 0.7;
   object-fit: cover;
+  min-width: 100%;
 `;
 
 // 각 항목들의 배치를 위한 스타일 컴포넌트
