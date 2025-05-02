@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import styled, { createGlobalStyle } from 'styled-components';
+import styled, { createGlobalStyle, css } from 'styled-components';
 import html2canvas from 'html2canvas';
 
 // 전역 스타일 설정
@@ -15,6 +15,12 @@ const GlobalStyle = createGlobalStyle`
     padding: 0;
     overflow: hidden;
     background-color: #000;
+  }
+
+  @media (min-width: 769px) {
+    body {
+      background-color: #fff;
+    }
   }
 `;
 
@@ -114,24 +120,67 @@ const Container = styled.div`
   bottom: 0;
   overflow: hidden;
   box-sizing: border-box;
+
+  @media (min-width: 769px) {
+    position: static;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: auto;
+    padding: 20px 0;
+    background-color: #fff;
+  }
 `;
 
 const Header = styled.div`
+  text-align: center;
+  z-index: 20;
+  padding: 15px 0 10px;
   position: absolute;
-  top: 20px;
+  top: 0;
   left: 0;
   right: 0;
-  text-align: center;
-  z-index: 10;
+`;
+
+const CardWrapper = styled.div`
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+
+  @media (min-width: 769px) {
+    width: 480px;
+    height: 800px;
+    border-radius: 20px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    background-color: #000;
+    margin: auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
 `;
 
 const FullScreenCard = styled.div`
-  width: 100%;
-  height: 100%;
+  flex: 1;
   position: relative;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
   box-sizing: border-box;
   overflow: hidden;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+
+  @media (min-width: 769px) {
+    border-radius: 20px;
+  }
 `;
 
 const FaceContainer = styled.div`
@@ -209,7 +258,12 @@ const ButtonsContainer = styled.div`
   margin: 0 auto;
   width: 100%;
   justify-content: center;
-  z-index: 10;
+  z-index: 20;
+
+  @media (min-width: 769px) {
+    position: absolute;
+    bottom: 30px;
+  }
 `;
 
 const Button = styled.button`
@@ -240,11 +294,11 @@ const Button = styled.button`
 
 const InterpretButton = styled.button`
   position: absolute;
-  bottom: 80px;
+  bottom: 100px;
   left: 0;
   right: 0;
   margin: 0 auto;
-  width: 80%;
+  width: 100%;
   max-width: 250px;
   height: 50px;
   display: flex;
@@ -260,12 +314,17 @@ const InterpretButton = styled.button`
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  z-index: 10;
+  z-index: 20;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
   
   &:active {
     transform: scale(0.98);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+
+  @media (min-width: 769px) {
+    position: absolute;
+    bottom: 80px;
   }
 `;
 
@@ -278,7 +337,12 @@ const Footer = styled.div`
   width: 100%;
   background: transparent;
   font-family: 'Pretendard', sans-serif;
-  z-index: 5;
+  z-index: 20;
+
+  @media (min-width: 769px) {
+    position: absolute;
+    bottom: 10px;
+  }
 `;
 
 const Copyright = styled.div`
@@ -302,6 +366,7 @@ function debounce(func: Function, wait: number) {
 
 const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userName = '진원' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const [screenSize, setScreenSize] = useState<'extraSmall' | 'small' | 'medium' | 'large'>('medium');
   const [forCapture, setForCapture] = useState(false);
   
@@ -332,7 +397,13 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
     document.body.style.margin = '0';
     document.body.style.padding = '0';
     document.body.style.overflow = 'hidden';
-    document.body.style.backgroundColor = '#000';
+    
+    // 모바일일 때는 검은색, PC일 때는 하얀색 배경
+    if (window.innerWidth >= 769) {
+      document.body.style.backgroundColor = '#fff';
+    } else {
+      document.body.style.backgroundColor = '#000';
+    }
     
     // 컴포넌트 언마운트 시 복원
     return () => {
@@ -347,8 +418,11 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
     
     // DOM 업데이트가 완료된 후 캡처 실행
     setTimeout(() => {
-      if (containerRef.current) {
-        html2canvas(containerRef.current, {
+      // PC 버전에서는 카드만 캡처하고, 모바일에서는 전체 화면 캡처
+      const targetElement = window.innerWidth >= 769 ? cardRef.current : containerRef.current;
+      
+      if (targetElement) {
+        html2canvas(targetElement, {
           scale: 2, // 2배 크기로 저장
           useCORS: true,
           allowTaint: true,
@@ -386,116 +460,118 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
       <GlobalStyle />
       <CaptureStyles forCapture={forCapture} />
       <Container ref={containerRef}>
-        <Header>
-          <img src={`${process.env.PUBLIC_URL}/images/icon/logo-white.png`} alt="관상 로고" style={{ height: '50px' }} />
-        </Header>
+        <CardWrapper ref={cardRef}>
+          <FullScreenCard>
+            <FaceContainer>
+              <FaceImage src={`${process.env.PUBLIC_URL}/images/result_face.png`} alt="Face Analysis" />
+              
+              {/* 상단 측정 결과 */}
+              <DataItem top="20%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
+                <DataLabel screenSize={screenSize}>얼굴 너비-높이 비율</DataLabel>
+                <DataValue screenSize={screenSize}>{(result.faceRatio * 0.4 + 0.5).toFixed(2)}</DataValue>
+              </DataItem>
+              
+              {/* 왼쪽 상단 */}
+              <DataItem top="33%" left="15%" textAlign="left" screenSize={screenSize}>
+                <DataLabel screenSize={screenSize}>왼쪽 눈 색상</DataLabel>
+                <ColorCircle color={result.eyeIrisColor_L || '#130603'} style={{ margin: '0 auto' }} screenSize={screenSize} />
+              </DataItem>
+              
+              {/* 오른쪽 상단 */}
+              <DataItem top="33%" right="15%" textAlign="right" screenSize={screenSize}>
+                <DataLabel screenSize={screenSize}>오른쪽 눈 색상</DataLabel>
+                <ColorCircle color={result.eyeIrisColor_R || '#190705'} style={{ margin: '0 auto' }} screenSize={screenSize} />
+              </DataItem>
+              
+              {/* 얼굴 대칭성 */}
+              <DataItem top="25%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
+                <DataLabel screenSize={screenSize}>얼굴 대칭성</DataLabel>
+                <DataValue screenSize={screenSize}>{(result.symmetryScore * 100).toFixed(0)}%</DataValue>
+              </DataItem>
+              
+              {/* 왼쪽 중앙 */}
+              <DataItem top="27%" left="12%" textAlign="left" screenSize={screenSize}>
+                <DataLabel screenSize={screenSize}>왼쪽 눈 기울기</DataLabel>
+                <DataValue screenSize={screenSize}>{result.eyeAngleDeg_L.toFixed(1)}°</DataValue>
+              </DataItem>
+              
+              {/* 오른쪽 중앙 */}
+              <DataItem top="27%" right="12%" textAlign="right" screenSize={screenSize}>
+                <DataLabel screenSize={screenSize}>오른쪽 눈 기울기</DataLabel>
+                <DataValue screenSize={screenSize}>{result.eyeAngleDeg_R.toFixed(1)}°</DataValue>
+              </DataItem>
+              
+              {/* 눈 사이 거리 */}
+              <DataItem top="30%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
+                <DataLabel screenSize={screenSize}>눈 사이 거리</DataLabel>
+                <DataValue screenSize={screenSize}>{result.eyeDistanceRatio.toFixed(2)}</DataValue>
+              </DataItem>
+              
+              {/* 코 길이 */}
+              <DataItem top="35%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
+                <DataLabel screenSize={screenSize}>코 길이</DataLabel>
+                <DataValue screenSize={screenSize}>{result.noseLength.toFixed(2)}</DataValue>
+              </DataItem>
+              
+              {/* 코 높이 */}
+              <DataItem top="40%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
+                <DataLabel screenSize={screenSize}>코 높이</DataLabel>
+                <DataValue screenSize={screenSize}>{result.noseHeight.toFixed(2)}</DataValue>
+              </DataItem>
+              
+              {/* 왼쪽 콧망울 */}
+              <DataItem top="40%" left="20%" textAlign="left" screenSize={screenSize}>
+                <DataLabel screenSize={screenSize}>왼쪽 콧망울 크기</DataLabel>
+                <DataValue screenSize={screenSize}>{result.nostrilSize_L.toFixed(2)}</DataValue>
+              </DataItem>
+              
+              {/* 오른쪽 콧망울 */}
+              <DataItem top="40%" right="20%" textAlign="right" screenSize={screenSize}>
+                <DataLabel screenSize={screenSize}>오른쪽 콧망울 크기</DataLabel>
+                <DataValue screenSize={screenSize}>{result.nostrilSize_R.toFixed(2)}</DataValue>
+              </DataItem>
+              
+              {/* 아랫입술 두께 */}
+              <DataItem top="50%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
+                <DataLabel screenSize={screenSize}>아랫입술 두께</DataLabel>
+                <DataValue screenSize={screenSize}>{result.lowerLipThickness.toFixed(2)}</DataValue>
+              </DataItem>
+              
+              {/* 피부 색상 */}
+              <DataItem bottom="40%" left="25%" textAlign="center" screenSize={screenSize}>
+                <DataLabel screenSize={screenSize}>피부 색상</DataLabel>
+                <ColorCircle color={result.skinToneColor || '#c6b7b0'} style={{ margin: '0 auto' }} screenSize={screenSize} />
+              </DataItem>
+              
+              {/* 다크서클 색상 */}
+              <DataItem bottom="40%" right="25%" textAlign="center" screenSize={screenSize}>
+                <DataLabel screenSize={screenSize}>다크서클 색상</DataLabel>
+                <ColorCircle color={result.eyeDarkCircleColor || '#807673'} style={{ margin: '0 auto' }} screenSize={screenSize} />
+              </DataItem>
+            </FaceContainer>
+          </FullScreenCard>
+          
+          <Header>
+            <img src={`${process.env.PUBLIC_URL}/images/icon/logo-white.png`} alt="관상 로고" style={{ height: '40px' }} />
+          </Header>
+          
+          <InterpretButton>
+            Interpret with AI
+          </InterpretButton>
+          
+          <ButtonsContainer>
+            <Button onClick={onRetake}>
+              <img src={`${process.env.PUBLIC_URL}/images/icon/retake.png`} alt="다시 찍기" />
+            </Button>
+            <Button onClick={captureScreen}>
+              <img src={`${process.env.PUBLIC_URL}/images/icon/save.png`} alt="카드 저장" />
+            </Button>
+          </ButtonsContainer>
 
-        <FullScreenCard>
-          <FaceContainer>
-            <FaceImage src={`${process.env.PUBLIC_URL}/images/result_face.png`} alt="Face Analysis" />
-            
-            {/* 상단 측정 결과 */}
-            <DataItem top="20%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
-              <DataLabel screenSize={screenSize}>얼굴 너비-높이 비율</DataLabel>
-              <DataValue screenSize={screenSize}>{(result.faceRatio * 0.4 + 0.5).toFixed(2)}</DataValue>
-            </DataItem>
-            
-            {/* 왼쪽 상단 */}
-            <DataItem top="33%" left="15%" textAlign="left" screenSize={screenSize}>
-              <DataLabel screenSize={screenSize}>왼쪽 눈 색상</DataLabel>
-              <ColorCircle color={result.eyeIrisColor_L || '#130603'} style={{ margin: '0 auto' }} screenSize={screenSize} />
-            </DataItem>
-            
-            {/* 오른쪽 상단 */}
-            <DataItem top="33%" right="15%" textAlign="right" screenSize={screenSize}>
-              <DataLabel screenSize={screenSize}>오른쪽 눈 색상</DataLabel>
-              <ColorCircle color={result.eyeIrisColor_R || '#190705'} style={{ margin: '0 auto' }} screenSize={screenSize} />
-            </DataItem>
-            
-            {/* 얼굴 대칭성 */}
-            <DataItem top="25%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
-              <DataLabel screenSize={screenSize}>얼굴 대칭성</DataLabel>
-              <DataValue screenSize={screenSize}>{(result.symmetryScore * 100).toFixed(0)}%</DataValue>
-            </DataItem>
-            
-            {/* 왼쪽 중앙 */}
-            <DataItem top="27%" left="12%" textAlign="left" screenSize={screenSize}>
-              <DataLabel screenSize={screenSize}>왼쪽 눈 기울기</DataLabel>
-              <DataValue screenSize={screenSize}>{result.eyeAngleDeg_L.toFixed(1)}°</DataValue>
-            </DataItem>
-            
-            {/* 오른쪽 중앙 */}
-            <DataItem top="27%" right="12%" textAlign="right" screenSize={screenSize}>
-              <DataLabel screenSize={screenSize}>오른쪽 눈 기울기</DataLabel>
-              <DataValue screenSize={screenSize}>{result.eyeAngleDeg_R.toFixed(1)}°</DataValue>
-            </DataItem>
-            
-            {/* 눈 사이 거리 */}
-            <DataItem top="30%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
-              <DataLabel screenSize={screenSize}>눈 사이 거리</DataLabel>
-              <DataValue screenSize={screenSize}>{result.eyeDistanceRatio.toFixed(2)}</DataValue>
-            </DataItem>
-            
-            {/* 코 길이 */}
-            <DataItem top="35%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
-              <DataLabel screenSize={screenSize}>코 길이</DataLabel>
-              <DataValue screenSize={screenSize}>{result.noseLength.toFixed(2)}</DataValue>
-            </DataItem>
-            
-            {/* 코 높이 */}
-            <DataItem top="40%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
-              <DataLabel screenSize={screenSize}>코 높이</DataLabel>
-              <DataValue screenSize={screenSize}>{result.noseHeight.toFixed(2)}</DataValue>
-            </DataItem>
-            
-            {/* 왼쪽 콧망울 */}
-            <DataItem top="40%" left="20%" textAlign="left" screenSize={screenSize}>
-              <DataLabel screenSize={screenSize}>왼쪽 콧망울 크기</DataLabel>
-              <DataValue screenSize={screenSize}>{result.nostrilSize_L.toFixed(2)}</DataValue>
-            </DataItem>
-            
-            {/* 오른쪽 콧망울 */}
-            <DataItem top="40%" right="20%" textAlign="right" screenSize={screenSize}>
-              <DataLabel screenSize={screenSize}>오른쪽 콧망울 크기</DataLabel>
-              <DataValue screenSize={screenSize}>{result.nostrilSize_R.toFixed(2)}</DataValue>
-            </DataItem>
-            
-            {/* 아랫입술 두께 */}
-            <DataItem top="50%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
-              <DataLabel screenSize={screenSize}>아랫입술 두께</DataLabel>
-              <DataValue screenSize={screenSize}>{result.lowerLipThickness.toFixed(2)}</DataValue>
-            </DataItem>
-            
-            {/* 피부 색상 */}
-            <DataItem bottom="40%" left="25%" textAlign="center" screenSize={screenSize}>
-              <DataLabel screenSize={screenSize}>피부 색상</DataLabel>
-              <ColorCircle color={result.skinToneColor || '#c6b7b0'} style={{ margin: '0 auto' }} screenSize={screenSize} />
-            </DataItem>
-            
-            {/* 다크서클 색상 */}
-            <DataItem bottom="40%" right="25%" textAlign="center" screenSize={screenSize}>
-              <DataLabel screenSize={screenSize}>다크서클 색상</DataLabel>
-              <ColorCircle color={result.eyeDarkCircleColor || '#807673'} style={{ margin: '0 auto' }} screenSize={screenSize} />
-            </DataItem>
-          </FaceContainer>
-        </FullScreenCard>
-        
-        <InterpretButton>
-          Interpret with AI
-        </InterpretButton>
-        
-        <ButtonsContainer>
-          <Button onClick={onRetake}>
-            <img src={`${process.env.PUBLIC_URL}/images/icon/retake.png`} alt="다시 찍기" />
-          </Button>
-          <Button onClick={captureScreen}>
-            <img src={`${process.env.PUBLIC_URL}/images/icon/save.png`} alt="카드 저장" />
-          </Button>
-        </ButtonsContainer>
-
-        <Footer>
-          <Copyright>© 2025 eeezeen. All rights reserved.</Copyright>
-        </Footer>
+          <Footer>
+            <Copyright>© 2025 eeezeen. All rights reserved.</Copyright>
+          </Footer>
+        </CardWrapper>
       </Container>
     </>
   );

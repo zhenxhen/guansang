@@ -1532,7 +1532,7 @@ const WebcamDetection: React.FC = () => {
               top: 0;
               left: 0;
               width: 100vw;
-              background-color: #000;
+              background-color: #FFF;
               border-radius: 0px;
             }
           }
@@ -1580,7 +1580,7 @@ const WebcamDetection: React.FC = () => {
               position: relative;
               width: 400px;
               height: 800px;
-              border-radius: 12px;
+              border-radius: 20px;
               box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
               background-color: #000;
               margin: auto;
