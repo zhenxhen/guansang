@@ -19,23 +19,23 @@ const fadeInUp = keyframes`
 
 const ButtonContainer = styled.div<{ show: boolean }>`
   position: absolute;
-  bottom: 60px;
+  bottom: 50px;
   left: 0;
   right: 0;
   margin: 0 auto;
-  width: 330px;
+  width: 300px;
   height: 60px;
   display: flex;
   justify-content: center;
   align-items: center;
-  background-color: rgba(234, 213, 161, 0.8);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
   color: white;
-  border-radius: 15px;
-  font-size: 18px;
+  border-radius: 10px;
+  font-size: 16px;
   font-weight: 600;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 4px 8px rgba(255, 255, 255, 0.2);
   cursor: pointer;
   opacity: ${({ show }) => (show ? 1 : 0)};
   visibility: ${({ show }) => (show ? 'visible' : 'hidden')};

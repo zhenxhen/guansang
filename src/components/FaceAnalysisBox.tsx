@@ -206,7 +206,7 @@ const drawNoseVerticalBox = (
   ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'; // 흰색 반투명
   
   // 둥근 모서리 사각형 그리기
-  const cornerRadius = 5 * scale; // 모서리 둥글기 반경
+  const cornerRadius = 0 * scale; // 모서리 둥글기 반경
   
   ctx.beginPath();
   ctx.moveTo(noseTipX - boxWidth/2 + cornerRadius, boxStartY);
@@ -536,7 +536,7 @@ export const drawFaceAnalysisBox = ({
   ctx.translate(canvasWidth, 0);
   
   // 2. x축 방향으로 -1 스케일링 (좌우 반전)
-  ctx.scale(-1, 1);
+  ctx.scale(-1, 1.05);
   
   // 원래 좌표에서 반전된 좌표 계산
   const flippedBoxX = canvasWidth - boxX - boxWidth;
@@ -553,7 +553,7 @@ export const drawFaceAnalysisBox = ({
   // 블러 효과는 캔버스 API 한계로 직접적으로 구현하기 어려우므로 대신 반투명 효과 강화
   
   // 모서리 반경
-  const cornerRadius = 20;
+  const cornerRadius = 10;
   
   // 박스 배경 (반투명 검정색 + 라운딩)
   ctx.fillStyle = 'rgba(255, 255, 255, 0.2)'; // 불투명도 높임
@@ -646,6 +646,19 @@ export const drawNoseHeightIndicator = (
     const baseWidth = 300; // 기준 얼굴 너비 (픽셀)
     scale = Math.min(Math.max(faceFeatures.faceWidthPixels / baseWidth, 0.5), 1.5);
   }
+  
+  // 기기 유형에 따라 다른 표준 비율 적용
+  const isMobile = window.innerWidth <= 768;
+  const standardNoseHeightRatio = isMobile ? 0.9 : 0.6; // 모바일에서는 더 큰 값 사용
+  const standardNoseLengthRatio = isMobile ? 0.35 : 0.5; // 모바일에서는 더 작은 값 사용
+  
+  // 화면 너비에 따른 스케일 계수 적용
+  const screenWidthFactor = Math.min(1, window.innerWidth / 1024);
+  const adjustedNoseHeight = faceFeatures.noseHeight * screenWidthFactor;
+  
+  // 전방/후방 카메라 감지 및 보정 값 적용
+  const isFrontCamera = true; // 실제 카메라 유형 감지 로직 필요
+  const cameraAdjustment = isFrontCamera ? 0.8 : 1.0;
   
   // 새 함수 호출하여 모든 코 관련 동그라미 그리기
   drawNoseCircles(
