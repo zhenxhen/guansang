@@ -5,7 +5,7 @@ import {
   drawBlendShapes, 
   hasGetUserMedia,
   FaceLandmarker, 
-  DrawingUtils,
+  DrawingUtils, 
   getValueClass
 } from '../utils/FaceLandmarkerUtils';
 import { 
@@ -1533,6 +1533,7 @@ const WebcamDetection: React.FC = () => {
               left: 0;
               width: 100vw;
               background-color: #000;
+              border-radius: 0px;
             }
           }
           
@@ -1563,11 +1564,13 @@ const WebcamDetection: React.FC = () => {
           /* 모바일일 때 */
           @media (max-width: 768px) {
             .webcam-container {
-              position: absolute;
-              top: 0;
+              position: fixed;
+              top: 0px;
               left: 0;
-              height: 100%;
-              background-color: #000;
+              width: calc(100vw - 20px);
+              height: 100vh;
+              background-color: #FFF;
+              border-radius: 0px;
             }
           }
           
@@ -1603,11 +1606,11 @@ const WebcamDetection: React.FC = () => {
           @media (max-width: 768px) {
             #webcam {
               position: absolute;
-              top: 0;
+              top: 100px;
               left: 0;
-              width: 100%;
-              height: 100%;
-              object-fit: contain;
+              width: calc(100vw - 20px);
+              height: 100vh;
+              object-fit: cover;
             }
           }
           
@@ -1634,15 +1637,18 @@ const WebcamDetection: React.FC = () => {
           
           /* 결과 섹션 */
           .collapsible-section {
-            position: relative;
+            position: absolute;
             bottom: 0;
-            left: 0;
             width: 100%;
             background-color: rgba(255, 255, 255, 0.95);
-            z-index: 10;
+            z-index: 1000;
             max-width: 460px;
             margin: 0 auto;
+            left: 50%;
+            transform: translateX(-50%);
             transition: opacity 0.3s ease, visibility 0.3s ease;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            pointer-events: auto;
           }
           
           .hidden-section {
@@ -1654,26 +1660,24 @@ const WebcamDetection: React.FC = () => {
           /* 모바일일 때 결과 섹션 */
           @media (max-width: 768px) {
             .collapsible-section {
-              position: fixed;
-              bottom: 0;
-              left: 0;
+              position: absolute;
               width: 100%;
               max-width: 100%;
-              z-index: 100;
-              transition: transform 0.3s ease, opacity 0.3s ease, visibility 0.3s ease;
-              margin: 0;
+              left: 0;
+              transform: none;
             }
           }
           
           /* PC 모드일 때 결과 섹션 */
           @media (min-width: 769px) {
             .collapsible-section {
-              position: relative;
+              position: absolute;
               width: 400px;
-              margin: 8px auto;
+              margin: 0;
               border-radius: 8px;
               overflow: hidden;
               box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+              bottom: 10px;
             }
           }
           
@@ -1822,14 +1826,16 @@ const WebcamDetection: React.FC = () => {
         <div 
           className="webcam-container" 
           style={{ 
-            height: isMobile ? `${viewportHeight}px` : '800px'
+            height: isMobile ? `${viewportHeight}px` : '800px',
+            width: isMobile ? '100vw' : '100%'
           }}
         >
           <div 
             className="video-wrapper" 
             style={{ 
               height: isMobile ? `${viewportHeight}px` : '100%',
-              position: 'relative' // 추가
+              width: isMobile ? '100vw' : '100%',
+              position: 'relative'
             }}
           >
             <video 
@@ -1840,7 +1846,9 @@ const WebcamDetection: React.FC = () => {
               ref={videoRef}
               style={{ 
                 height: isMobile ? `${viewportHeight}px` : '100%',
-                objectFit: isMobile ? 'contain' : 'cover'
+                width: isMobile ? '100vw' : '100%',
+                objectFit: isMobile ? 'cover' : 'cover',
+                objectPosition: 'center'
               }}
             ></video>
             <canvas 
@@ -1851,7 +1859,7 @@ const WebcamDetection: React.FC = () => {
                 position: 'absolute',
                 top: 0,
                 left: 0,
-                width: '100%',
+                width: isMobile ? '100vw' : '100%',
                 height: isMobile ? `${viewportHeight}px` : '100%'
               }}
             ></canvas>
@@ -1866,7 +1874,8 @@ const WebcamDetection: React.FC = () => {
 
         {/* 측정 결과 섹션 */}
         {result && (
-          <div className={`collapsible-section ${!sectionsVisible ? 'hidden-section' : ''}`}>
+          <div className={`collapsible-section ${!sectionsVisible ? 'hidden-section' : ''}`} 
+               style={{ bottom: graphExpanded ? '350px' : '70px', zIndex: 2000 }}>
             <h4 
               className={`section-title ${resultExpanded ? '' : 'collapsed'}`}
               onClick={() => setResultExpanded(!resultExpanded)}
@@ -1922,7 +1931,8 @@ const WebcamDetection: React.FC = () => {
         )}
         
         {/* 실시간 측정 데이터 섹션 */}
-        <div className={`collapsible-section ${!sectionsVisible ? 'hidden-section' : ''}`} style={{ bottom: result && isMobile ? 'auto' : 0 }}>
+        <div className={`collapsible-section ${!sectionsVisible ? 'hidden-section' : ''}`} 
+             style={{ bottom: '10px', zIndex: 2001 }}>
           <h4 
             className={`section-title ${graphExpanded ? '' : 'collapsed'}`}
             onClick={() => setGraphExpanded(!graphExpanded)}
