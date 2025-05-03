@@ -576,8 +576,10 @@ export const drawFaceAnalysisBox = ({
   
   // fWHR (얼굴 너비-높이 비율) 표시
   const faceRatioValue = faceFeatures.faceRatio;
+  // 모바일 및 PC 환경 모두에서 항상 실시간 값 사용
   const actualRatio = (faceRatioValue * 0.4 + 0.5).toFixed(2);
   
+  // 실시간 fWHR 값을 적용하여 그래프 그리기
   drawFeatureBar({
     label: 'fWHR',
     value: faceRatioValue,
@@ -647,15 +649,14 @@ export const drawNoseHeightIndicator = (
     scale = Math.min(Math.max(faceFeatures.faceWidthPixels / baseWidth, 0.5), 1.5);
   }
   
-  // 기기 유형에 따라 다른 표준 비율 적용
-  const isMobile = window.innerWidth <= 479;
-  const standardNoseHeightRatio = 0.6; // 모바일과 PC에서 동일한 값 사용
-  const standardNoseLengthRatio = 0.5; // 모바일과 PC에서 동일한 값 사용
+  // 기기 유형에 따라 다른 표준 비율 적용 - 아니요, 모든 기기에서 동일한 기준 사용
+  const standardNoseHeightRatio = 0.6; // 모든 디바이스에서 동일한 값 사용
+  const standardNoseLengthRatio = 0.5; // 모든 디바이스에서 동일한 값 사용
   
   // 화면 너비에 따른 스케일 계수 적용 - 모든 디바이스에서 동일하게 처리
   const screenWidthFactor = Math.min(1, window.innerWidth / 1024);   // 모든 디바이스에서 동일하게 적용
   
-  // 코드 조정 부분 삭제 - 모든 디바이스에서 동일한 계산 사용
+  // 모든 디바이스에서 동일한 계산 사용
   const adjustedNoseHeight = faceFeatures.noseHeight * screenWidthFactor;
   
   // 전방/후방 카메라 감지 및 보정 값 적용

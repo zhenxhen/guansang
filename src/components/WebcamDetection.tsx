@@ -1109,7 +1109,10 @@ const WebcamDetection: React.FC = () => {
             const boxY = maxY + 5; // 얼굴 아래 5픽셀 간격
             
             // 외부 컴포넌트를 사용하여 얼굴 분석 박스 그리기
+            // 항상 현재 프레임의 계산된 값을 사용하여 실시간으로 값이 반영되도록 함
             const faceFeatures = calculateFaceFeatures(displayResults.faceLandmarks);
+            
+            // PC/모바일 환경 상관없이 동일한 방식으로 값 계산
             drawFaceAnalysisBox({
               ctx,
               boxX,
@@ -1162,8 +1165,11 @@ const WebcamDetection: React.FC = () => {
           );
           
           // FaceAnalysisBox에서 제공하는 함수를 사용하여 코 끝에 흰색 동그라미 추가
-          const faceFeatures = calculateFaceFeatures(displayResults.faceLandmarks);
-          drawNoseHeightIndicator(ctx, displayResults.faceLandmarks, faceFeatures);
+          // 매 프레임마다 새로 계산한 값을 사용하여 실시간 반영 보장
+          const noseIndicatorFeatures = calculateFaceFeatures(displayResults.faceLandmarks);
+          
+          // 모바일/PC 동일하게 처리하여 실시간 업데이트 보장
+          drawNoseHeightIndicator(ctx, displayResults.faceLandmarks, noseIndicatorFeatures);
         }
 
         // Update blend shapes - 항상 현재 결과를 사용
