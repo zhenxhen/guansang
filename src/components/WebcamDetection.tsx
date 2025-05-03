@@ -1880,6 +1880,31 @@ const WebcamDetection: React.FC = () => {
               }}
             ></canvas>
             
+            {/* 히든 메뉴 호출 버튼 */}
+            <button
+              onClick={() => setSectionsVisible(true)}
+              style={{
+                position: 'absolute',
+                top: '10px',
+                left: '10px',
+                zIndex: 2000,
+                background: 'rgba(255, 255, 255, 0.3)',
+                border: 'none',
+                borderRadius: '50%',
+                width: '40px',
+                height: '40px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                cursor: 'pointer',
+                fontSize: '20px',
+                color: 'white',
+                backdropFilter: 'blur(2px)'
+              }}
+            >
+              ⚙️
+            </button>
+            
             {/* 카메라 화면 위에 버튼 추가 */}
             <AnalysisButton 
               show={showButton} 
