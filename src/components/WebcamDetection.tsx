@@ -169,8 +169,8 @@ const WebcamDetection: React.FC = () => {
     setViewportHeight(newHeight);
     setViewportWidth(newWidth);
     
-    // 모바일 환경인지 확인 (화면 너비가 479px 이하)
-    const mobile = window.innerWidth <= 479;
+    // 모바일 환경인지 확인 (화면 너비가 768px 이하)
+    const mobile = window.innerWidth <= 768;
     setIsMobile(mobile);
     
     if (mobile) {
@@ -1289,7 +1289,9 @@ const WebcamDetection: React.FC = () => {
             const noseHeightText = document.getElementById("nose-height-text");
             
             if (noseLengthBar && noseLengthText) {
+              // 디바이스 타입에 관계없이 동일한 값 사용
               const noseLengthValue = faceFeatures.noseLength;
+              
               // 1.0을 50%로 표시하고, 범위는 0.2~4.0을 0~100%로 스케일링
               const noseLengthPercent = Math.min(Math.max((noseLengthValue - 0.2) / 3.8 * 100, 0), 100).toFixed(1);
               noseLengthBar.style.width = `${noseLengthPercent}%`;
@@ -1307,7 +1309,9 @@ const WebcamDetection: React.FC = () => {
             }
             
             if (noseHeightBar && noseHeightText) {
+              // 디바이스 타입에 관계없이 동일한 값 사용
               const noseHeightValue = faceFeatures.noseHeight;
+              
               // 1.0을 50%로 표시하고, 범위는 0.2~4.0을 0~100%로 스케일링
               const noseHeightPercent = Math.min(Math.max((noseHeightValue - 0.2) / 3.8 * 100, 0), 100).toFixed(1);
               noseHeightBar.style.width = `${noseHeightPercent}%`;
@@ -1405,7 +1409,9 @@ const WebcamDetection: React.FC = () => {
             const lowerLipText = document.getElementById("lower-lip-text");
             
             if (lowerLipBar && lowerLipText) {
+              // 디바이스 타입에 관계없이 동일한 값 사용
               const lowerLipValue = faceFeatures.lowerLipThickness;
+              
               // 1.0을 50%로 표시하고, 범위는 0.2~2.0을 0~100%로 스케일링 (최대값 2.0으로 수정)
               const lowerLipPercent = Math.min(Math.max((lowerLipValue - 0.2) / 1.8 * 100, 0), 100).toFixed(1);
               lowerLipBar.style.width = `${lowerLipPercent}%`;
@@ -1526,7 +1532,7 @@ const WebcamDetection: React.FC = () => {
           }
           
           /* 모바일일 때 */
-          @media (max-width: 479px) {
+          @media (max-width: 768px) {
             .mobile-container {
               position: fixed;
               top: 0;
@@ -1538,7 +1544,7 @@ const WebcamDetection: React.FC = () => {
           }
           
           /* PC 모드일 때 */
-          @media (min-width: 480px) {
+          @media (min-width: 769px) {
             .mobile-container {
               background-color: #fff;
               padding: 20px 0;
@@ -1562,7 +1568,7 @@ const WebcamDetection: React.FC = () => {
           }
           
           /* 모바일일 때 */
-          @media (max-width: 479px) {
+          @media (max-width: 768px) {
             .webcam-container {
               position: fixed;
               top: 0px;
@@ -1575,7 +1581,7 @@ const WebcamDetection: React.FC = () => {
           }
           
           /* PC 모드일 때 */
-          @media (min-width: 480px) {
+          @media (min-width: 769px) {
             .webcam-container {
               position: relative;
               width: 400px;
@@ -1603,7 +1609,7 @@ const WebcamDetection: React.FC = () => {
           }
           
           /* 모바일일 때 */
-          @media (max-width: 479px) {
+          @media (max-width: 768px) {
             #webcam {
               position: absolute;
               top: 100px;
@@ -1615,7 +1621,7 @@ const WebcamDetection: React.FC = () => {
           }
           
           /* PC 모드일 때 */
-          @media (min-width: 480px) {
+          @media (min-width: 769px) {
             #webcam {
               position: absolute;
               top: 0;
@@ -1658,7 +1664,7 @@ const WebcamDetection: React.FC = () => {
           }
           
           /* 모바일일 때 결과 섹션 */
-          @media (max-width: 479px) {
+          @media (max-width: 768px) {
             .collapsible-section {
               position: absolute;
               width: 100%;
@@ -1669,7 +1675,7 @@ const WebcamDetection: React.FC = () => {
           }
           
           /* PC 모드일 때 결과 섹션 */
-          @media (min-width: 480px) {
+          @media (min-width: 769px) {
             .collapsible-section {
               position: absolute;
               width: 400px;

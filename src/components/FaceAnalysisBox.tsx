@@ -649,30 +649,18 @@ export const drawNoseHeightIndicator = (
   
   // 기기 유형에 따라 다른 표준 비율 적용
   const isMobile = window.innerWidth <= 479;
-  const standardNoseHeightRatio = isMobile ? 0.6 : 0.6; // 모바일과 PC에서 동일한 값 사용
-  const standardNoseLengthRatio = isMobile ? 0.5 : 0.5; // 모바일과 PC에서 동일한 값 사용
+  const standardNoseHeightRatio = 0.6; // 모바일과 PC에서 동일한 값 사용
+  const standardNoseLengthRatio = 0.5; // 모바일과 PC에서 동일한 값 사용
   
-  // 화면 너비에 따른 스케일 계수 적용 - 모바일에서 보정
-  const screenWidthFactor = isMobile ? 
-    Math.min(1.5, window.innerWidth / 600) : // 모바일에서는 더 큰 계수 적용
-    Math.min(1, window.innerWidth / 1024);   // PC에서는 기존 계수 유지
+  // 화면 너비에 따른 스케일 계수 적용 - 모든 디바이스에서 동일하게 처리
+  const screenWidthFactor = Math.min(1, window.innerWidth / 1024);   // 모든 디바이스에서 동일하게 적용
   
-  // 코 높이 및 길이 조정
-  if (isMobile && faceFeatures.noseHeight) {
-    // 모바일에서 코 높이 값 감소
-    faceFeatures.noseHeight = faceFeatures.noseHeight * 0.7;
-  }
-  
-  if (isMobile && faceFeatures.noseLength) {
-    // 모바일에서 코 길이 값 증가
-    faceFeatures.noseLength = faceFeatures.noseLength * 1.4;
-  }
-  
+  // 코드 조정 부분 삭제 - 모든 디바이스에서 동일한 계산 사용
   const adjustedNoseHeight = faceFeatures.noseHeight * screenWidthFactor;
   
   // 전방/후방 카메라 감지 및 보정 값 적용
   const isFrontCamera = true; // 실제 카메라 유형 감지 로직 필요
-  const cameraAdjustment = isFrontCamera ? 0.8 : 1.0;
+  const cameraAdjustment = 1.0; // 모든 카메라에서 동일하게 처리
   
   // 새 함수 호출하여 모든 코 관련 동그라미 그리기
   drawNoseCircles(
@@ -723,11 +711,8 @@ export const calculateFaceFeatures = (landmarks: any) => {
     Math.pow(landmarks[noseBridgeTop].y - landmarks[noseIndex].y, 2)
   );
 
-  // 기기 화면 크기에 따른 코 길이 조정
-  const isMobileDevice = window.innerWidth <= 479;
-  const adjustedNoseLength = isMobileDevice ? 
-    noseLength * 1.4 : // 모바일에서는 코 길이를 40% 증가
-    noseLength;       // PC에서는 원래 값 유지
+  // 기기 특화 코드 제거 - 모든 디바이스에서 동일하게 계산
+  const adjustedNoseLength = noseLength;
 
   // 콧망울 크기 계산
   const leftNostrilIndex = 102;
