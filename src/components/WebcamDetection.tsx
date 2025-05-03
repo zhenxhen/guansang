@@ -149,7 +149,7 @@ const WebcamDetection: React.FC = () => {
   const [sectionsVisible, setSectionsVisible] = useState(false);
 
   // 디바이스 타입 상태 (모바일/데스크톱)
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 479);
   
   // 버튼 표시 상태
   const [showButton, setShowButton] = useState(false);
@@ -169,8 +169,8 @@ const WebcamDetection: React.FC = () => {
     setViewportHeight(newHeight);
     setViewportWidth(newWidth);
     
-    // 모바일 환경인지 확인 (화면 너비가 768px 이하)
-    const mobile = window.innerWidth <= 768;
+    // 모바일 환경인지 확인 (화면 너비가 479px 이하)
+    const mobile = window.innerWidth <= 479;
     setIsMobile(mobile);
     
     if (mobile) {
@@ -1532,7 +1532,7 @@ const WebcamDetection: React.FC = () => {
           }
           
           /* 모바일일 때 */
-          @media (max-width: 768px) {
+          @media (max-width: 479px) {
             .mobile-container {
               position: fixed;
               top: 0;
@@ -1544,7 +1544,7 @@ const WebcamDetection: React.FC = () => {
           }
           
           /* PC 모드일 때 */
-          @media (min-width: 769px) {
+          @media (min-width: 480px) {
             .mobile-container {
               background-color: #fff;
               padding: 20px 0;
@@ -1568,7 +1568,7 @@ const WebcamDetection: React.FC = () => {
           }
           
           /* 모바일일 때 */
-          @media (max-width: 768px) {
+          @media (max-width: 479px) {
             .webcam-container {
               position: fixed;
               top: 0px;
@@ -1581,7 +1581,7 @@ const WebcamDetection: React.FC = () => {
           }
           
           /* PC 모드일 때 */
-          @media (min-width: 769px) {
+          @media (min-width: 480px) {
             .webcam-container {
               position: relative;
               width: 400px;
@@ -1609,7 +1609,7 @@ const WebcamDetection: React.FC = () => {
           }
           
           /* 모바일일 때 */
-          @media (max-width: 768px) {
+          @media (max-width: 479px) {
             #webcam {
               position: absolute;
               top: 100px;
@@ -1621,7 +1621,7 @@ const WebcamDetection: React.FC = () => {
           }
           
           /* PC 모드일 때 */
-          @media (min-width: 769px) {
+          @media (min-width: 480px) {
             #webcam {
               position: absolute;
               top: 0;
@@ -1664,7 +1664,7 @@ const WebcamDetection: React.FC = () => {
           }
           
           /* 모바일일 때 결과 섹션 */
-          @media (max-width: 768px) {
+          @media (max-width: 479px) {
             .collapsible-section {
               position: absolute;
               width: 100%;
@@ -1675,7 +1675,7 @@ const WebcamDetection: React.FC = () => {
           }
           
           /* PC 모드일 때 결과 섹션 */
-          @media (min-width: 769px) {
+          @media (min-width: 480px) {
             .collapsible-section {
               position: absolute;
               width: 400px;
