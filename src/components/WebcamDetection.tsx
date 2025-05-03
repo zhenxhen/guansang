@@ -1112,6 +1112,12 @@ const WebcamDetection: React.FC = () => {
             // 항상 현재 프레임의 계산된 값을 사용하여 실시간으로 값이 반영되도록 함
             const faceFeatures = calculateFaceFeatures(displayResults.faceLandmarks);
             
+            // faceFeatures 객체를 콘솔에 출력하여 값 확인 (디버깅용)
+            console.log('실시간 faceFeatures:', {
+              faceRatio: faceFeatures.faceRatio,
+              actualRatio: (faceFeatures.faceRatio * 0.4 + 0.5).toFixed(2)
+            });
+            
             // PC/모바일 환경 상관없이 동일한 방식으로 값 계산
             drawFaceAnalysisBox({
               ctx,
@@ -1119,7 +1125,7 @@ const WebcamDetection: React.FC = () => {
               boxY,
               boxWidth,
               boxHeight,
-              faceFeatures
+              faceFeatures // 방금 계산된 최신 faceFeatures 사용
             });
           }
           
@@ -1193,16 +1199,16 @@ const WebcamDetection: React.FC = () => {
             const rightEyeAngle = faceFeatures.eyeAngleDeg_R;
             const eyeAngleDiff = Math.abs(leftEyeAngle - rightEyeAngle);
             
-            // 눈 기울기 차이가 3도 이내일 때 데이터 저장
+            // 눈 기울기 차이가 3도 이내일 때 데이터 저장 (결과 카드용)
             if (eyeAngleDiff <= 3) {
               setOptimalFaceData(faceFeatures);
             }
             
-            // 얼굴 너비-높이 비율 그래프 업데이트
+            // 얼굴 너비-높이 비율 그래프 업데이트 - 항상 실시간 값 사용
             const faceRatioBar = document.getElementById("face-ratio-bar");
             const faceRatioText = document.getElementById("face-ratio-text");
             if (faceRatioBar && faceRatioText) {
-              // 항상 현재 계산된 faceRatio 값을 사용
+              // 항상 현재 계산된 faceRatio 값을 사용 (optimalFaceData가 아님)
               const faceRatioValue = faceFeatures.faceRatio;
               // 실제 비율을 0-100% 스케일로 변환 (그래프 표시용)
               const faceRatioPercent = (faceRatioValue * 100).toFixed(1);
@@ -1469,6 +1475,14 @@ const WebcamDetection: React.FC = () => {
     // 웹캠 중지
     stopWebcam();
     
+    // 가장 최근의 랜드마크 데이터로 새로운 특성 계산
+    let currentResult = optimalFaceData;
+    
+    // 눈 기울기 차이가 큰 경우, 현재 프레임의 값을 직접 사용 (최적 데이터가 없거나 오래된 경우)
+    if (lastResultsRef.current && (!currentResult || lastResultsRef.current.timestamp > Date.now() - 1000)) {
+      currentResult = calculateFaceFeatures(lastResultsRef.current.faceLandmarks);
+    }
+    
     // 결과 카드 표시
     setShowResultCard(true);
   };
@@ -1498,10 +1512,14 @@ const WebcamDetection: React.FC = () => {
   }, []);
 
   // 결과 카드 페이지가 표시 중이면 메인 컴포넌트 대신 결과 카드 표시
-  if (showResultCard && result) {
+  if (showResultCard && (result || lastResultsRef.current)) {
+    // 최신 데이터 사용 (optimalFaceData가 없으면 현재 프레임 사용)
+    const currentResult = result || 
+      (lastResultsRef.current ? calculateFaceFeatures(lastResultsRef.current.faceLandmarks) : null);
+      
     return (
       <ResultCard 
-        result={result}
+        result={currentResult}
         onRetake={handleRetake}
         onSave={handleSaveCard}
       />
@@ -1926,7 +1944,11 @@ const WebcamDetection: React.FC = () => {
             <div className={`section-content ${resultExpanded ? '' : 'collapsed'}`}>
               <div className="result-grid">
                 <div className="result-label">얼굴 너비-높이 비율:</div>
-                <div className="result-value">{(result.faceRatio * 0.4 + 0.5).toFixed(2)}</div>
+                <div className="result-value">
+                  {lastResultsRef.current ? 
+                    ((calculateFaceFeatures(lastResultsRef.current.faceLandmarks).faceRatio * 0.4 + 0.5).toFixed(2)) : 
+                    (result ? (result.faceRatio * 0.4 + 0.5).toFixed(2) : "0.00")}
+                </div>
                 
                 <div className="result-label">얼굴 대칭성:</div>
                 <div className="result-value">{(result.symmetryScore * 100).toFixed(0)}%</div>

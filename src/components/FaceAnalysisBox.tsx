@@ -575,8 +575,8 @@ export const drawFaceAnalysisBox = ({
   ctx.stroke();
   
   // fWHR (얼굴 너비-높이 비율) 표시
-  const faceRatioValue = faceFeatures.faceRatio;
-  // 모바일 및 PC 환경 모두에서 항상 실시간 값 사용
+  const faceRatioValue = faceFeatures.faceRatio || 0.5; // 값이 없으면 기본값 설정
+  // 항상 최신 계산값으로 표시
   const actualRatio = (faceRatioValue * 0.4 + 0.5).toFixed(2);
   
   // 실시간 fWHR 값을 적용하여 그래프 그리기
