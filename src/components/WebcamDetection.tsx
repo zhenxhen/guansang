@@ -502,6 +502,9 @@ const WebcamDetection: React.FC = () => {
     // 비율 범위를 0.2~0.95로 확장하여 더 넓은 변화 범위 제공
     const normalizedFaceRatio = Math.min(Math.max((rawFaceRatio - 0.3) * (0.75 / 0.5) + 0.2, 0.2), 0.95);
     
+    // faceRatio 필드는 모든 디바이스에서 동일하게 처리하여 항상 실시간 반영되도록 함
+    const faceRatio = normalizedFaceRatio;
+    
     // 대칭성 계산을 위한 여러 특징점 비교
     // 1. 양쪽 눈 비교
     const leftEyeInnerIndex = 133;
@@ -938,8 +941,8 @@ const WebcamDetection: React.FC = () => {
     
     // 실제 특성을 계산한 결과 반환
     return {
-      faceRatio: normalizedFaceRatio,
-      symmetryScore: normalizedSymmetry,
+      faceRatio: faceRatio, // 얼굴 너비-높이 비율 (정규화된 값)
+      symmetryScore: normalizedSymmetry, // 얼굴 대칭성 점수 (0-1 범위)
       foreheadNoseChinRatio: Math.random() * 0.8 + 0.2,
       eyeWidth_L: leftEyeWidth / faceWidth * 10,
       eyeWidth_R: rightEyeWidth / faceWidth * 10,
@@ -1193,6 +1196,7 @@ const WebcamDetection: React.FC = () => {
             const faceRatioBar = document.getElementById("face-ratio-bar");
             const faceRatioText = document.getElementById("face-ratio-text");
             if (faceRatioBar && faceRatioText) {
+              // 항상 현재 계산된 faceRatio 값을 사용
               const faceRatioValue = faceFeatures.faceRatio;
               // 실제 비율을 0-100% 스케일로 변환 (그래프 표시용)
               const faceRatioPercent = (faceRatioValue * 100).toFixed(1);
