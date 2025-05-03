@@ -389,6 +389,7 @@ const WebcamDetection: React.FC = () => {
     (faceLandmarks: any): FaceFeatures;
     maxNoseHeight?: number;
     maxNoseHeightRatio?: number;
+    lastFaceRatio?: number;
   }
 
   // 함수에 타입 지정
@@ -503,7 +504,25 @@ const WebcamDetection: React.FC = () => {
     const normalizedFaceRatio = Math.min(Math.max((rawFaceRatio - 0.3) * (0.75 / 0.5) + 0.2, 0.2), 0.95);
     
     // faceRatio 필드는 모든 디바이스에서 동일하게 처리하여 항상 실시간 반영되도록 함
-    const faceRatio = normalizedFaceRatio;
+    // 모바일에서는 값 변화를 더 부드럽게 만들기 위해 정적 변수를 사용한 스무딩 적용
+    let faceRatio = normalizedFaceRatio;
+    
+    // 스무딩 처리를 위한 static 변수
+    if (typeof calculateFaceFeatures.lastFaceRatio === 'undefined') {
+      calculateFaceFeatures.lastFaceRatio = normalizedFaceRatio;
+    }
+    
+    // 모바일 환경 감지 - 모바일에서만 스무딩 적용 (window.innerWidth 직접 사용)
+    const isMobileView = window.innerWidth <= 479;
+    
+    if (isMobileView) {
+      // 모바일에서는 이전 값과 현재 값 사이의 부드러운 전환을 위해 보간(interpolation) 적용
+      // 이전 값에 가중치 0.7, 새 값에 가중치 0.3을 두어 갑작스러운 변화 방지
+      faceRatio = calculateFaceFeatures.lastFaceRatio * 0.7 + normalizedFaceRatio * 0.3;
+    }
+    
+    // 다음 프레임을 위해 현재 값 저장
+    calculateFaceFeatures.lastFaceRatio = faceRatio;
     
     // 대칭성 계산을 위한 여러 특징점 비교
     // 1. 양쪽 눈 비교
@@ -990,6 +1009,9 @@ const WebcamDetection: React.FC = () => {
     const faceLandmarker = faceLandmarkerRef.current;
     const drawingUtils = drawingUtilsRef.current;
     
+    // 모바일 디바이스 감지 (isMobile 상태 활용)
+    const isCurrentlyMobile = window.innerWidth <= 479;
+    
     // Resize canvas to match video dimensions
     const ratio = video.videoHeight / video.videoWidth;
     video.style.width = `${videoWidth}px`;
@@ -1029,6 +1051,12 @@ const WebcamDetection: React.FC = () => {
         // 기존 결과에 계산된 얼굴 특성 추가
         const faceFeatures = calculateFaceFeatures(results.faceLandmarks);
         
+        // 계산된 faceRatio 값을 콘솔에 출력 (디버깅용)
+        if (isCurrentlyMobile) {
+          console.log('모바일에서 계산된 faceRatio:', faceFeatures.faceRatio, 
+                     '실제 비율:', (faceFeatures.faceRatio * 0.4 + 0.5).toFixed(2));
+        }
+        
         // 기존 결과와 계산된 특성을 병합
         const enhancedResults = { 
           ...results,
@@ -1049,9 +1077,12 @@ const WebcamDetection: React.FC = () => {
               ...blendshape,
               categories: extendedCategories
             };
-          })
+          }),
+          // 타임스탬프 추가로 최신 데이터 구분
+          timestamp: Date.now()
         };
         
+        // 최신 결과 저장
         lastResultsRef.current = enhancedResults;
         
         // 결과가 없을 때 표시되는 메시지 숨기기
@@ -1210,17 +1241,58 @@ const WebcamDetection: React.FC = () => {
             if (faceRatioBar && faceRatioText) {
               // 항상 현재 계산된 faceRatio 값을 사용 (optimalFaceData가 아님)
               const faceRatioValue = faceFeatures.faceRatio;
+              
+              // 디버깅 - 모바일에서 DOM 업데이트 확인
+              if (isMobile) {
+                console.log('모바일 DOM 업데이트 - faceRatio:', faceRatioValue);
+              }
+              
               // 실제 비율을 0-100% 스케일로 변환 (그래프 표시용)
               const faceRatioPercent = (faceRatioValue * 100).toFixed(1);
-              faceRatioBar.style.width = `${faceRatioPercent}%`;
-              // 텍스트는 실제 비율 값으로 표시 (0.6-0.8 정도가 일반적인 비율)
-              const actualRatio = (faceRatioValue * 0.4 + 0.5).toFixed(2);
-              faceRatioText.textContent = `${actualRatio}`;
               
-              // 값에 따른 색상 클래스 설정
-              const ratioValueClass = getValueClass(faceRatioValue);
-              faceRatioBar.classList.remove('test-low', 'test-medium', 'test-high');
-              faceRatioBar.classList.add(`test-${ratioValueClass}`);
+              // 명시적으로 DOM 업데이트 강제화 - 모바일에서도 확실히 반영되도록
+              // 브라우저의 최적화로 인해 값이 같으면 DOM 업데이트가 무시될 수 있으므로
+              // 강제로 스타일을 변경했다가 원래대로 돌리는 트릭 적용
+              if (isMobile) {
+                if (faceRatioBar) {
+                  // 강제 리페인트를 위한 트릭
+                  faceRatioBar.style.display = 'none';
+                  // getBoundingClientRect() 호출로 레이아웃 재계산 유도
+                  faceRatioBar.getBoundingClientRect();
+                  faceRatioBar.style.display = 'block';
+                  // 실제 업데이트
+                  faceRatioBar.style.width = `${faceRatioPercent}%`;
+                }
+                
+                // 텍스트 업데이트
+                const actualRatio = (faceRatioValue * 0.4 + 0.5).toFixed(2);
+                if (faceRatioText) {
+                  faceRatioText.textContent = `${actualRatio}`;
+                }
+                
+                // 색상 클래스 업데이트
+                const ratioValueClass = getValueClass(faceRatioValue);
+                if (faceRatioBar) {
+                  faceRatioBar.classList.remove('test-low', 'test-medium', 'test-high');
+                  faceRatioBar.classList.add(`test-${ratioValueClass}`);
+                }
+              } else {
+                // PC 환경에서는 기존 requestAnimationFrame 방식 유지
+                window.requestAnimationFrame(() => {
+                  if (faceRatioBar) faceRatioBar.style.width = `${faceRatioPercent}%`;
+                  
+                  // 텍스트는 실제 비율 값으로 표시 (0.6-0.8 정도가 일반적인 비율)
+                  const actualRatio = (faceRatioValue * 0.4 + 0.5).toFixed(2);
+                  if (faceRatioText) faceRatioText.textContent = `${actualRatio}`;
+                  
+                  // 값에 따른 색상 클래스 설정
+                  const ratioValueClass = getValueClass(faceRatioValue);
+                  if (faceRatioBar) {
+                    faceRatioBar.classList.remove('test-low', 'test-medium', 'test-high');
+                    faceRatioBar.classList.add(`test-${ratioValueClass}`);
+                  }
+                });
+              }
             }
             
             // 얼굴 대칭성 그래프 업데이트
@@ -1450,8 +1522,16 @@ const WebcamDetection: React.FC = () => {
       console.error('Error detecting video:', error);
     }
     
-    // Keep looping - 최대한 빨리 다음 프레임 처리
-    requestRef.current = requestAnimationFrame(predictWebcam);
+    // 모바일 기기에서는 프레임 제한으로 CPU 사용량 최적화
+    if (isMobile) {
+      // 모바일에서는 30fps 정도로 제한 (약 33ms 간격)
+      setTimeout(() => {
+        requestRef.current = requestAnimationFrame(predictWebcam);
+      }, 33); // 30fps
+    } else {
+      // PC에서는 최대 프레임 레이트로 실행
+      requestRef.current = requestAnimationFrame(predictWebcam);
+    }
   };
 
   // 그래프 렌더링 함수
