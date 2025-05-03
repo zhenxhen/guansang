@@ -648,7 +648,7 @@ export const drawNoseHeightIndicator = (
   }
   
   // 기기 유형에 따라 다른 표준 비율 적용
-  const isMobile = window.innerWidth <= 768;
+  const isMobile = window.innerWidth <= 479;
   const standardNoseHeightRatio = isMobile ? 0.6 : 0.6; // 모바일과 PC에서 동일한 값 사용
   const standardNoseLengthRatio = isMobile ? 0.5 : 0.5; // 모바일과 PC에서 동일한 값 사용
   
@@ -724,7 +724,7 @@ export const calculateFaceFeatures = (landmarks: any) => {
   );
 
   // 기기 화면 크기에 따른 코 길이 조정
-  const isMobileDevice = window.innerWidth <= 768;
+  const isMobileDevice = window.innerWidth <= 479;
   const adjustedNoseLength = isMobileDevice ? 
     noseLength * 1.4 : // 모바일에서는 코 길이를 40% 증가
     noseLength;       // PC에서는 원래 값 유지

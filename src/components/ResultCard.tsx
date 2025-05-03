@@ -17,7 +17,7 @@ const GlobalStyle = createGlobalStyle`
     background-color: #000;
   }
 
-  @media (min-width: 769px) {
+  @media (min-width: 480px) {
     body {
       background-color: #fff;
     }
@@ -121,7 +121,7 @@ const Container = styled.div`
   overflow: hidden;
   box-sizing: border-box;
 
-  @media (min-width: 769px) {
+  @media (min-width: 480px) {
     position: static;
     width: 100%;
     height: 100vh;
@@ -151,7 +151,7 @@ const CardWrapper = styled.div`
   flex-direction: column;
   position: relative;
 
-  @media (min-width: 769px) {
+  @media (min-width: 480px) {
     width: 480px;
     height: 800px;
     border-radius: 20px;
@@ -178,7 +178,7 @@ const FullScreenCard = styled.div`
   width: 100%;
   height: 100%;
 
-  @media (min-width: 769px) {
+  @media (min-width: 480px) {
     border-radius: 20px;
   }
 `;
@@ -260,7 +260,7 @@ const ButtonsContainer = styled.div`
   justify-content: center;
   z-index: 20;
 
-  @media (min-width: 769px) {
+  @media (min-width: 480px) {
     position: absolute;
     bottom: 30px;
   }
@@ -322,7 +322,7 @@ const InterpretButton = styled.button`
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   }
 
-  @media (min-width: 769px) {
+  @media (min-width: 480px) {
     position: absolute;
     bottom: 80px;
   }
@@ -339,7 +339,7 @@ const Footer = styled.div`
   font-family: 'Pretendard', sans-serif;
   z-index: 20;
 
-  @media (min-width: 769px) {
+  @media (min-width: 480px) {
     position: absolute;
     bottom: 10px;
   }
@@ -399,7 +399,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
     document.body.style.overflow = 'hidden';
     
     // 모바일일 때는 검은색, PC일 때는 하얀색 배경
-    if (window.innerWidth >= 769) {
+    if (window.innerWidth >= 480) {
       document.body.style.backgroundColor = '#fff';
     } else {
       document.body.style.backgroundColor = '#000';
@@ -419,7 +419,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
     // DOM 업데이트가 완료된 후 캡처 실행
     setTimeout(() => {
       // PC 버전에서는 카드만 캡처하고, 모바일에서는 전체 화면 캡처
-      const targetElement = window.innerWidth >= 769 ? cardRef.current : containerRef.current;
+      const targetElement = window.innerWidth >= 480 ? cardRef.current : containerRef.current;
       
       if (targetElement) {
         html2canvas(targetElement, {
