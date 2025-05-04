@@ -142,8 +142,9 @@ const drawFeatureBar = ({
   ctx.fillStyle ='rgba(255, 255, 255, 0.2)';
   drawRoundedRect(ctx, boxX + 90, barY, barWidth, barHeight, barRadius);
   
-  // 값에 따른 바 너비 계산
-  let fillWidth = barWidth * value;
+  // fWHR 값이 0~3 범위일 때 바 너비를 적절히 계산
+  const maxValue = 2.5; // 최대값을 3으로 설정
+  let fillWidth = barWidth * (value / maxValue); // 값을 최대값으로 나눠 비율 계산
   
   // 바 너비가 최소 픽셀 크기보다 작으면 최소 크기로 설정
   const MIN_PIXEL_WIDTH = 10; // 최소 픽셀 너비 (10픽셀)

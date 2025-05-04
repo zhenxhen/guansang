@@ -498,10 +498,10 @@ const WebcamDetection: React.FC = () => {
     
     // 가로/세로 비율 계산 (너비/높이)에 턱 움직임 반영
     // jawMovementFactor가 작을수록(턱을 들수록) 비율이 커짐
-    const rawFaceRatio = (faceWidth / faceHeight) * (1.5 - jawMovementFactor);
+    const rawFaceRatio = faceHeight / faceWidth;
     
     // 비율 범위를 0.2~0.95로 확장하여 더 넓은 변화 범위 제공
-    const normalizedFaceRatio = Math.min(Math.max((rawFaceRatio - 0.3) * (0.75 / 0.5) + 0.2, 0.2), 0.95);
+    const normalizedFaceRatio = Math.min(Math.max((rawFaceRatio - 0.3)), 3);
     
     // faceRatio 필드는 모든 디바이스에서 동일하게 처리하여 항상 실시간 반영되도록 함
     // 모바일에서는 값 변화를 더 부드럽게 만들기 위해 정적 변수를 사용한 스무딩 적용
@@ -1148,13 +1148,6 @@ const WebcamDetection: React.FC = () => {
               faceRatio: faceFeatures.faceRatio,
               actualRatio: (faceFeatures.faceRatio * 0.4 + 0.5).toFixed(2)
             });
-            
-            // 모바일 환경에서도 값이 실시간으로 반영되도록 강제 렌더링 유도
-            if (isCurrentlyMobile) {
-              // 캔버스 강제 리페인트를 위한 트릭 적용
-              ctx.save();
-              ctx.restore();
-            }
             
             // PC/모바일 환경 상관없이 동일한 방식으로 값 계산
             drawFaceAnalysisBox({
