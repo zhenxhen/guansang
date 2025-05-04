@@ -425,9 +425,21 @@ const drawNoseCircles = (
     devicePrefix = '[M] '; // 모바일 표시용 접두사
   }
   
-  // 값 텍스트 준비 (faceFeatures에는 이미 조정된 값이 포함되어 있음)
-  const noseHeightText = `${devicePrefix}${faceFeatures.noseHeight.toFixed(2)}`;
-  const noseLengthText = faceFeatures.noseLength ? `${devicePrefix}${faceFeatures.noseLength.toFixed(2)}` : "0.00";
+  // 값 텍스트 준비 (모바일 디바이스에서는 직접 계산하여 표시)
+  let displayNoseHeight = faceFeatures.noseHeight;
+  let displayNoseLength = faceFeatures.noseLength || 0;
+  let displayLowerLipThickness = faceFeatures.lowerLipThickness || 0;
+  
+  // 모바일 디바이스인 경우 값을 직접 변환 (iOS/Android)
+  if (currentDeviceType === 'iOS' || currentDeviceType === 'Android') {
+    // 직접 변환 계산을 적용
+    displayNoseHeight = displayNoseHeight / 3; // 코 높이 계산에 /3
+    displayNoseLength = displayNoseLength * 3; // 코 길이 계산에 *3
+    displayLowerLipThickness = displayLowerLipThickness * 3; // 밑 입술 계산에 *3
+  }
+  
+  const noseHeightText = `${devicePrefix}${displayNoseHeight.toFixed(2)}`;
+  const noseLengthText = displayNoseLength ? `${devicePrefix}${displayNoseLength.toFixed(2)}` : "0.00";
   const leftNostrilText = faceFeatures.nostrilSize_L.toFixed(2);
   const rightNostrilText = faceFeatures.nostrilSize_R.toFixed(2);
   
@@ -435,8 +447,8 @@ const drawNoseCircles = (
   const leftTempleText = faceFeatures.eyeAngleDeg_L ? `${faceFeatures.eyeAngleDeg_L.toFixed(1)}°` : "0.0°";
   const rightTempleText = faceFeatures.eyeAngleDeg_R ? `${faceFeatures.eyeAngleDeg_R.toFixed(1)}°` : "0.0°";
   
-  // 입술 관련 값 텍스트 (조정된 값 사용)
-  const lowerLipText = faceFeatures.lowerLipThickness ? `${devicePrefix}${faceFeatures.lowerLipThickness.toFixed(2)}` : "0.00";
+  // 입술 관련 값 텍스트 (모바일 디바이스에서 직접 변환한 값 사용)
+  const lowerLipText = displayLowerLipThickness ? `${devicePrefix}${displayLowerLipThickness.toFixed(2)}` : "0.00";
   
   // 눈 색상 가져오기 (기본값은 갈색)
   const leftEyeColor = faceFeatures.eyeIrisColor_L || 'rgba(101, 67, 33, 0.9)'; // WebcamDetection에서 추출한 색상 사용
@@ -639,14 +651,21 @@ export const drawFaceAnalysisBox = ({
     fwhrPrefix = '[M] '; // 모바일 표시용 접두사
   }
   
+  // 디바이스별 fWHR 계산 - 모바일에서는 분자와 분모를 바꿔서 계산
+  let displayFaceRatio = faceRatioValue;
+  if (boxDeviceType === 'iOS' || boxDeviceType === 'Android') {
+    // 모바일에서는 기존 비율의 역수를 취하고 적절히 스케일링
+    displayFaceRatio = 1 / displayFaceRatio; 
+  }
+  
   // 항상 최신 계산값으로 표시
-  const actualRatio = (faceRatioValue * 0.4 + 0.5).toFixed(2);
+  const actualRatio = (displayFaceRatio * 0.4 + 0.5).toFixed(2);
   const displayRatio = `${fwhrPrefix}${actualRatio}`;
   
   // 실시간 fWHR 값을 적용하여 그래프 그리기
   drawFeatureBar({
     label: 'fWHR',
-    value: faceRatioValue,
+    value: faceRatioValue, // 그래프 표시용 원본 값은 유지
     displayValue: displayRatio,
     position: 0.33,
     boxX: flippedBoxX,
@@ -658,12 +677,22 @@ export const drawFaceAnalysisBox = ({
   
   // fSR (얼굴 대칭성) 표시
   const symmetryValue = faceFeatures.symmetryScore;
-  const symmetryPercent = (symmetryValue * 100).toFixed(0);
+  
+  // 디바이스에 따라 다른 계산 적용
+  let displaySymmetryValue = symmetryValue;
+  if (boxDeviceType === 'iOS' || boxDeviceType === 'Android') {
+    // 모바일에서는 대칭성 점수에 특정 가중치 적용 (예: 10% 증가)
+    displaySymmetryValue = symmetryValue * 1.1;
+    // 최대값 1.0 제한
+    displaySymmetryValue = Math.min(displaySymmetryValue, 1.0);
+  }
+  
+  const symmetryPercent = (displaySymmetryValue * 100).toFixed(0);
   const displaySymmetry = `${fwhrPrefix}${symmetryPercent}%`;
   
   drawFeatureBar({
     label: 'fSR',
-    value: symmetryValue,
+    value: symmetryValue, // 그래프 표시용 원본 값은 유지
     displayValue: displaySymmetry,
     position: 0.67,
     boxX: flippedBoxX,
