@@ -25,7 +25,8 @@ export interface FaceFeatures {
   eyeIrisColor_R?: string; // WebcamDetection에서 추출한 눈동자 색상
   eyeDarkCircleColor?: string; // 다크서클 색상
   skinToneColor?: string; // 피부 색상 HEX 코드
-  [key: string]: number | string | undefined;
+  showDeviceInfo?: boolean; // 디바이스 정보 표시 여부
+  [key: string]: number | string | boolean | undefined;
 }
 
 interface FaceFeatureBarProps {
@@ -50,7 +51,7 @@ interface FaceAnalysisBoxProps {
 }
 
 // 디바이스 유형 감지 함수
-const detectDeviceType = (): string => {
+export const detectDeviceType = (): string => {
   const userAgent = navigator.userAgent.toLowerCase();
   
   if (/iphone|ipad|ipod/.test(userAgent)) {
@@ -346,27 +347,43 @@ const drawNoseCircles = (
   // 현재 디바이스 유형 확인
   const currentDeviceType = detectDeviceType();
   
-  // 디바이스 정보를 화면 가운데 명확하게 표시
-  const deviceInfoText = `디바이스: ${currentDeviceType}`;
-  ctx.font = 'bold 24px Arial';
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
+  // 디바이스 정보 표시 여부를 위한 파라미터 추가
+  let showDeviceInfo = false;
   
-  // 텍스트 배경 그리기
-  const textWidth = ctx.measureText(deviceInfoText).width;
-  const padding = 10;
-  const rectX = canvasWidth / 2 - textWidth / 2 - padding;
-  const rectY = canvasHeight / 3 - 15;
-  const rectWidth = textWidth + padding * 2;
-  const rectHeight = 30;
+  // 톱니바퀴 버튼 클릭 시 디바이스 정보를 표시하기 위해 WebcamDetection에서 받을 파라미터 변수
+  if (faceFeatures && faceFeatures.showDeviceInfo) {
+    showDeviceInfo = faceFeatures.showDeviceInfo;
+  }
   
-  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
-  ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
-  
-  // 텍스트 그리기
-  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-  ctx.fillText(deviceInfoText, canvasWidth / 2, canvasHeight / 3);
+  // 디바이스 정보를 화면 가운데 명확하게 표시 (메뉴 버튼 클릭시에만 표시)
+  if (showDeviceInfo) {
+    // 반전된 캔버스에서 다시 원래대로 변환하여 텍스트를 정상적으로 그리기
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0); // 변환 초기화
+
+    const deviceInfoText = `디바이스: ${currentDeviceType}`;
+    ctx.font = 'bold 24px Arial';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    // 텍스트 배경 그리기
+    const textWidth = ctx.measureText(deviceInfoText).width;
+    const padding = 10;
+    const rectX = canvasWidth / 2 - textWidth / 2 - padding;
+    const rectY = 50; // 상단에 고정된 위치
+    const rectWidth = textWidth + padding * 2;
+    const rectHeight = 30;
+    
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+    ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
+    
+    // 텍스트 그리기
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+    ctx.fillText(deviceInfoText, canvasWidth / 2, rectY + rectHeight / 2);
+    
+    ctx.restore(); // 기존 변환 상태로 복원
+  }
   
   // 코 관련 랜드마크 인덱스
   const noseIndex = 1; // 코 끝
@@ -422,7 +439,7 @@ const drawNoseCircles = (
   // 디바이스 유형에 따라 다른 표시 텍스트 생성
   let devicePrefix = '';
   if (currentDeviceType === 'iOS' || currentDeviceType === 'Android') {
-    devicePrefix = '[M] '; // 모바일 표시용 접두사
+    // devicePrefix = '[M] '; // 모바일 표시용 접두사
   }
   
   // 값 텍스트 준비 (모바일 디바이스에서는 직접 계산하여 표시)
@@ -648,7 +665,7 @@ export const drawFaceAnalysisBox = ({
   const boxDeviceType = detectDeviceType();
   let fwhrPrefix = '';
   if (boxDeviceType === 'iOS' || boxDeviceType === 'Android') {
-    fwhrPrefix = '[M] '; // 모바일 표시용 접두사
+    // fwhrPrefix = '[M] '; // 모바일 표시용 접두사
   }
   
   // 디바이스별 fWHR 계산 - 모바일에서는 분자와 분모를 바꿔서 계산

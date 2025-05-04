@@ -11,7 +11,8 @@ import {
 import { 
   calculateFaceFeatures, 
   drawFaceAnalysisBox, 
-  drawNoseHeightIndicator 
+  drawNoseHeightIndicator,
+  detectDeviceType
 } from './FaceAnalysisBox';
 import AnalysisButton from './AnalysisButton';
 import ResultCard from './ResultCard';
@@ -154,6 +155,9 @@ const WebcamDetection: React.FC = () => {
   // 버튼 표시 상태
   const [showButton, setShowButton] = useState(false);
   const faceDetectedTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // 디바이스 정보 표시 상태
+  const [showDeviceInfo, setShowDeviceInfo] = useState(false);
   
   // 결과 카드 표시 상태
   const [showResultCard, setShowResultCard] = useState(false);
@@ -1156,7 +1160,10 @@ const WebcamDetection: React.FC = () => {
               boxY,
               boxWidth,
               boxHeight,
-              faceFeatures // 방금 계산된 최신 faceFeatures 사용
+              faceFeatures: {
+                ...faceFeatures,
+                showDeviceInfo // showDeviceInfo 상태 추가
+              }
             });
           }
           
@@ -1974,9 +1981,35 @@ const WebcamDetection: React.FC = () => {
               }}
             ></canvas>
             
+            {/* 디바이스 정보 표시 */}
+            {showDeviceInfo && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: '60px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  background: 'rgba(0, 0, 0, 0.7)',
+                  color: 'white',
+                  padding: '8px 16px',
+                  borderRadius: '4px',
+                  fontWeight: 'bold',
+                  fontSize: '16px',
+                  zIndex: 2001,
+                  textAlign: 'center',
+                  boxShadow: '0 0 10px rgba(0, 0, 0, 0.2)'
+                }}
+              >
+                디바이스: {detectDeviceType()}
+              </div>
+            )}
+            
             {/* 히든 메뉴 호출 버튼 */}
             <button
-              onClick={() => setSectionsVisible(true)}
+              onClick={() => {
+                setSectionsVisible(true);
+                setShowDeviceInfo(!showDeviceInfo); // 디바이스 정보 표시 토글
+              }}
               style={{
                 position: 'absolute',
                 top: '10px',
