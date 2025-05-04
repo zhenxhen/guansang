@@ -1149,6 +1149,13 @@ const WebcamDetection: React.FC = () => {
               actualRatio: (faceFeatures.faceRatio * 0.4 + 0.5).toFixed(2)
             });
             
+            // 모바일 환경에서도 값이 실시간으로 반영되도록 강제 렌더링 유도
+            if (isCurrentlyMobile) {
+              // 캔버스 강제 리페인트를 위한 트릭 적용
+              ctx.save();
+              ctx.restore();
+            }
+            
             // PC/모바일 환경 상관없이 동일한 방식으로 값 계산
             drawFaceAnalysisBox({
               ctx,
@@ -1242,10 +1249,6 @@ const WebcamDetection: React.FC = () => {
               // 항상 현재 계산된 faceRatio 값을 사용 (optimalFaceData가 아님)
               const faceRatioValue = faceFeatures.faceRatio;
               
-              // 디버깅 - 모바일에서 DOM 업데이트 확인
-              if (isMobile) {
-                console.log('모바일 DOM 업데이트 - faceRatio:', faceRatioValue);
-              }
               
               // 실제 비율을 0-100% 스케일로 변환 (그래프 표시용)
               const faceRatioPercent = (faceRatioValue * 100).toFixed(1);
