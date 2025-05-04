@@ -343,8 +343,11 @@ const drawNoseCircles = (
   // 2. x축 방향으로 -1 스케일링 (좌우 반전)
   ctx.scale(-1, 1);
   
+  // 현재 디바이스 유형 확인
+  const currentDeviceType = detectDeviceType();
+  
   // 디바이스 정보를 화면 가운데 명확하게 표시
-  const deviceInfoText = `디바이스: ${deviceType}`;
+  const deviceInfoText = `디바이스: ${currentDeviceType}`;
   ctx.font = 'bold 24px Arial';
   ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
   ctx.textAlign = 'center';
@@ -416,9 +419,15 @@ const drawNoseCircles = (
   const lowerLipX = canvasWidth - (landmarks[lowerLipIndex].x * canvasWidth);
   const lowerLipY = landmarks[lowerLipIndex].y * canvasHeight + 15; // 15픽셀 아래로 이동
   
-  // 값 텍스트 준비
-  const noseHeightText = faceFeatures.noseHeight.toFixed(2);
-  const noseLengthText = faceFeatures.noseLength ? faceFeatures.noseLength.toFixed(2) : "0.00"; // 코 길이 텍스트 (없을 경우 기본값)
+  // 디바이스 유형에 따라 다른 표시 텍스트 생성
+  let devicePrefix = '';
+  if (currentDeviceType === 'iOS' || currentDeviceType === 'Android') {
+    devicePrefix = '[M] '; // 모바일 표시용 접두사
+  }
+  
+  // 값 텍스트 준비 (faceFeatures에는 이미 조정된 값이 포함되어 있음)
+  const noseHeightText = `${devicePrefix}${faceFeatures.noseHeight.toFixed(2)}`;
+  const noseLengthText = faceFeatures.noseLength ? `${devicePrefix}${faceFeatures.noseLength.toFixed(2)}` : "0.00";
   const leftNostrilText = faceFeatures.nostrilSize_L.toFixed(2);
   const rightNostrilText = faceFeatures.nostrilSize_R.toFixed(2);
   
@@ -426,8 +435,8 @@ const drawNoseCircles = (
   const leftTempleText = faceFeatures.eyeAngleDeg_L ? `${faceFeatures.eyeAngleDeg_L.toFixed(1)}°` : "0.0°";
   const rightTempleText = faceFeatures.eyeAngleDeg_R ? `${faceFeatures.eyeAngleDeg_R.toFixed(1)}°` : "0.0°";
   
-  // 입술 관련 값 텍스트
-  const lowerLipText = faceFeatures.lowerLipThickness ? faceFeatures.lowerLipThickness.toFixed(2) : "0.00";
+  // 입술 관련 값 텍스트 (조정된 값 사용)
+  const lowerLipText = faceFeatures.lowerLipThickness ? `${devicePrefix}${faceFeatures.lowerLipThickness.toFixed(2)}` : "0.00";
   
   // 눈 색상 가져오기 (기본값은 갈색)
   const leftEyeColor = faceFeatures.eyeIrisColor_L || 'rgba(101, 67, 33, 0.9)'; // WebcamDetection에서 추출한 색상 사용
@@ -622,14 +631,23 @@ export const drawFaceAnalysisBox = ({
   
   // fWHR (얼굴 너비-높이 비율) 표시
   const faceRatioValue = faceFeatures.faceRatio || 0.5; // 값이 없으면 기본값 설정
+  
+  // 디바이스 유형 확인하여 접두사 추가
+  const boxDeviceType = detectDeviceType();
+  let fwhrPrefix = '';
+  if (boxDeviceType === 'iOS' || boxDeviceType === 'Android') {
+    fwhrPrefix = '[M] '; // 모바일 표시용 접두사
+  }
+  
   // 항상 최신 계산값으로 표시
   const actualRatio = (faceRatioValue * 0.4 + 0.5).toFixed(2);
+  const displayRatio = `${fwhrPrefix}${actualRatio}`;
   
   // 실시간 fWHR 값을 적용하여 그래프 그리기
   drawFeatureBar({
     label: 'fWHR',
     value: faceRatioValue,
-    displayValue: actualRatio,
+    displayValue: displayRatio,
     position: 0.33,
     boxX: flippedBoxX,
     boxY,
@@ -641,11 +659,12 @@ export const drawFaceAnalysisBox = ({
   // fSR (얼굴 대칭성) 표시
   const symmetryValue = faceFeatures.symmetryScore;
   const symmetryPercent = (symmetryValue * 100).toFixed(0);
+  const displaySymmetry = `${fwhrPrefix}${symmetryPercent}%`;
   
   drawFeatureBar({
     label: 'fSR',
     value: symmetryValue,
-    displayValue: `${symmetryPercent}%`,
+    displayValue: displaySymmetry,
     position: 0.67,
     boxX: flippedBoxX,
     boxY,
