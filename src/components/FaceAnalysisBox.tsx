@@ -365,11 +365,6 @@ const drawNoseCircles = (
   ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
   ctx.fillText(deviceInfoText, canvasWidth / 2, canvasHeight / 3);
   
-  // 또한 상단에도 표시
-  ctx.textAlign = 'left';
-  ctx.font = 'bold 16px Arial';
-  ctx.fillText(`디바이스: ${deviceType}`, 20, 30);
-  
   // 코 관련 랜드마크 인덱스
   const noseIndex = 1; // 코 끝
   const leftNostrilIndex = 102; // 왼쪽 콧망울
@@ -625,16 +620,17 @@ export const drawFaceAnalysisBox = ({
   ctx.quadraticCurveTo(flippedBoxX, boxY, flippedBoxX + cornerRadius, boxY);
   ctx.stroke();
   
-  // fWHR (얼굴 너비-높이 비율) 표시
-  const faceRatioValue = faceFeatures.faceRatio || 0.5; // 값이 없으면 기본값 설정
-  // 항상 최신 계산값으로 표시
-  const actualRatio = (faceRatioValue * 0.4 + 0.5).toFixed(2);
+  // fWHR (얼굴 너비-높이 비율) 표시 - faceFeatures.fWHR 직접 사용
+  const fWHRValue = faceFeatures.fWHR || 0.5; // 계산된 fWHR 값 직접 사용
+  
+  // fWHR 값을 텍스트로 표시하기 위한 포맷팅
+  const fWHRText = fWHRValue.toFixed(2);
   
   // 실시간 fWHR 값을 적용하여 그래프 그리기
   drawFeatureBar({
     label: 'fWHR',
-    value: faceRatioValue,
-    displayValue: actualRatio,
+    value: fWHRValue,
+    displayValue: fWHRText,
     position: 0.33,
     boxX: flippedBoxX,
     boxY,
@@ -644,7 +640,7 @@ export const drawFaceAnalysisBox = ({
   });
   
   // fSR (얼굴 대칭성) 표시
-  const symmetryValue = faceFeatures.symmetryScore;
+  const symmetryValue = faceFeatures.symmetryScore || faceFeatures.fSR || 0;
   const symmetryPercent = (symmetryValue * 100).toFixed(0);
   
   drawFeatureBar({
@@ -658,6 +654,13 @@ export const drawFaceAnalysisBox = ({
     boxHeight,
     ctx
   });
+  
+  // 디버그 정보 추가 (현재 디바이스와 계산 방식)
+  ctx.font = 'bold 10px Arial';
+  ctx.fillStyle = '#FFFFFF';
+  ctx.textAlign = 'left';
+  const deviceInfo = `디바이스: ${deviceType}`;
+  ctx.fillText(deviceInfo, flippedBoxX + 20, boxY + boxHeight - 10);
   
   // 캔버스 상태 복원 (변환 제거)
   ctx.restore();
@@ -768,25 +771,10 @@ export const calculateFaceFeatures = (landmarks: any) => {
   const innerLipBottomIndex = 17; // 입술 안쪽 하단 경계
   const lowerLipThickness = Math.abs(landmarks[lowerLipIndex].y - landmarks[innerLipBottomIndex].y);
 
+  // 현재 디바이스 유형 확인
   const deviceType = detectDeviceType();
+  const isMobile = deviceType === 'iOS' || deviceType === 'Android';
   
-  // 기기별 계산식 다르게 적용
-  let adjustedNoseLength = noseLength;
-  let adjustedNoseHeight = noseHeight;
-  let adjustedLowerLipThickness = lowerLipThickness;
-  let fWHR;
-
-  if (deviceType === 'iOS' || deviceType === 'Android') {
-    // 모바일 기기에서는 수정된 계산식 적용
-    fWHR = faceHeight / faceWidth; // fWHR 계산식의 분자와 분모 바꿈
-    adjustedNoseLength = noseLength * 3; // 코 길이 계산에 * 3
-    adjustedNoseHeight = noseHeight / 3; // 코 높이 계산에 / 3
-    adjustedLowerLipThickness = lowerLipThickness * 3; // 밑 입술 계산에 * 3
-  } else {
-    // PC에서는 기존 계산식 유지
-    fWHR = faceWidth / faceHeight;
-  }
-
   // 콧망울 크기 계산
   const leftNostrilIndex = 102;
   const rightNostrilIndex = 331;
@@ -820,6 +808,19 @@ export const calculateFaceFeatures = (landmarks: any) => {
   
   // 대칭 점수 계산 (낮을수록 대칭적)
   const fSR = (eyeAngleDiff + nostrilSizeDiff) / 2;
+  
+  console.log('디바이스 유형:', deviceType);
+  
+  // 모바일 디바이스에서 수정된 계산식 적용
+  let adjustedValues = {
+    fWHR: isMobile ? faceHeight / faceWidth : faceWidth / faceHeight,
+    noseHeight: isMobile ? noseHeight / 3 : noseHeight,
+    noseLength: isMobile ? noseLength * 3 : noseLength,
+    lowerLipThickness: isMobile ? lowerLipThickness * 3 : lowerLipThickness
+  };
+  
+  console.log('모바일 기기 여부:', isMobile);
+  console.log('수정된 값:', adjustedValues);
   
   // 눈 색상 추출 함수 - 실제 구현에서는 이미지 데이터를 받아서 처리해야 함
   const extractEyeColors = (video: HTMLVideoElement, landmarks: any) => {
@@ -923,21 +924,23 @@ export const calculateFaceFeatures = (landmarks: any) => {
   const videoElement = document.querySelector('video');
   const { leftEyeColor, rightEyeColor } = extractEyeColors(videoElement as HTMLVideoElement, landmarks);
   
+  // 최종 결과에 모바일 디바이스에서 조정된 값 사용
   return {
     faceWidth,
     faceHeight,
-    noseHeight: adjustedNoseHeight, // 조정된 코 높이 사용
-    noseLength: adjustedNoseLength, // 조정된 코 길이 사용
+    noseHeight: adjustedValues.noseHeight,
+    noseLength: adjustedValues.noseLength,
     nostrilSize_L,
     nostrilSize_R,
     leftEyeAngle,
     rightEyeAngle,
-    fWHR,
+    fWHR: adjustedValues.fWHR,
     fSR,
-    lowerLipThickness: adjustedLowerLipThickness, // 조정된 입술 두께 사용
+    lowerLipThickness: adjustedValues.lowerLipThickness,
     eyeAngleDeg_L: Math.abs(leftEyeAngle),
     eyeAngleDeg_R: Math.abs(rightEyeAngle),
     leftEyeColor,
-    rightEyeColor
+    rightEyeColor,
+    deviceType // 디버깅을 위해 디바이스 유형 추가
   };
 }; 
