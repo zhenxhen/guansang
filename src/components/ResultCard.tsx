@@ -137,7 +137,7 @@ const Container = styled.div`
 const Header = styled.div`
   text-align: center;
   z-index: 20;
-  padding: 15px 0 10px;
+  padding: 30px 0 10px;
   position: absolute;
   top: 0;
   left: 0;
@@ -249,10 +249,10 @@ const ColorCircle = styled.div<{ color: string, screenSize: 'extraSmall' | 'smal
 `;
 
 const ButtonsContainer = styled.div`
-  display: flex;
+  display: fixed;
   gap: 16px;
   position: absolute;
-  bottom: 30px;
+  bottom: 50px;
   left: 0;
   right: 0;
   margin: 0 auto;
@@ -267,14 +267,14 @@ const ButtonsContainer = styled.div`
 `;
 
 const Button = styled.button`
-  display: flex;
+  display: fixed;
   align-items: center;
   justify-content: center;
   padding: 0;
   background-color: rgba(210, 210, 210, 0.7);
   color: white;
   border: none;
-  border-radius: 15px;
+  border-radius: 20px;
   cursor: pointer;
   transition: background-color 0.2s;
   width: 40px;
@@ -293,8 +293,8 @@ const Button = styled.button`
 `;
 
 const InterpretButton = styled.button`
-  position: absolute;
-  bottom: 100px;
+  position: pixed;
+  bottom: 120px;
   left: 0;
   right: 0;
   margin: 0 auto;
@@ -552,7 +552,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
           </FullScreenCard>
           
           <Header>
-            <img src={`${process.env.PUBLIC_URL}/images/icon/logo-white.png`} alt="관상 로고" style={{ height: '40px' }} />
+            <img src={`${process.env.PUBLIC_URL}/images/icon/logo-white.png`} alt="관상 로고" style={{ height: '80px', opacity: 0.5}} />
           </Header>
           
           <InterpretButton>
@@ -563,14 +563,15 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
             <Button onClick={onRetake}>
               <img src={`${process.env.PUBLIC_URL}/images/icon/retake.png`} alt="다시 찍기" />
             </Button>
-            <Button onClick={captureScreen}>
+            {/* <Button onClick={captureScreen}>
               <img src={`${process.env.PUBLIC_URL}/images/icon/save.png`} alt="카드 저장" />
-            </Button>
+            </Button> */}
           </ButtonsContainer>
 
           <Footer>
             <Copyright>© 2025 eeezeen. All rights reserved.</Copyright>
           </Footer>
+
         </CardWrapper>
       </Container>
     </>
