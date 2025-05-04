@@ -162,9 +162,14 @@ const drawFeatureBar = ({
   // 라벨에 따라 다른 최대값 적용
   let maxValue = 1.0; // 기본값 (fSR 등 다른 지표용)
   
-  // fWHR인 경우 최대값을 3.0으로 설정
+  // fWHR인 경우 디바이스 타입에 따라 최대값 설정
   if (label === 'fWHR') {
-    maxValue = 3.0;
+    const deviceType = detectDeviceType();
+    if (deviceType === 'iOS' || deviceType === 'Android') {
+      maxValue = 2.5; // 모바일에서는 2.5 최대값 사용
+    } else {
+      maxValue = 3.0; // PC에서는 3.0 최대값 사용
+    }
   }
   
   // 값에 따른 바 너비 계산 - 라벨별 최대값 적용
@@ -672,7 +677,7 @@ export const drawFaceAnalysisBox = ({
   let displayFaceRatio = faceRatioValue;
   if (boxDeviceType === 'iOS' || boxDeviceType === 'Android') {
     // 모바일에서는 기존 비율의 역수를 취하고 적절히 스케일링
-    displayFaceRatio = 1 / displayFaceRatio; 
+    // displayFaceRatio = 1 / displayFaceRatio; 
   }
   
   // 항상 최신 계산값으로 표시
@@ -874,12 +879,74 @@ export const calculateFaceFeatures = (landmarks: any) => {
     landmarks[rightEyeOuterIndex].x, landmarks[rightEyeOuterIndex].y
   );
   
-  // 얼굴 좌우 대칭 점수 (fSR) - 눈 각도, 콧망울 크기의 대칭성
-  const eyeAngleDiff = Math.abs(leftEyeAngle - Math.abs(rightEyeAngle));
-  const nostrilSizeDiff = Math.abs(nostrilSize_L - nostrilSize_R);
+  // 입술 각도 계산을 위한 랜드마크 인덱스
+  const leftLipCornerIndex = 61;  // 왼쪽 입꼬리
+  const rightLipCornerIndex = 291; // 오른쪽 입꼬리
+  const upperLipMiddleIndex = 13;  // 윗입술 중앙
   
-  // 대칭 점수 계산 (낮을수록 대칭적)
-  const fSR = (eyeAngleDiff + nostrilSizeDiff) / 2;
+  // 왼쪽 입꼬리 각도 계산
+  const leftLipAngle = calculateAngle(
+    landmarks[leftLipCornerIndex].x, landmarks[leftLipCornerIndex].y,
+    landmarks[upperLipMiddleIndex].x, landmarks[upperLipMiddleIndex].y
+  );
+  
+  // 오른쪽 입꼬리 각도 계산
+  const rightLipAngle = calculateAngle(
+    landmarks[upperLipMiddleIndex].x, landmarks[upperLipMiddleIndex].y,
+    landmarks[rightLipCornerIndex].x, landmarks[rightLipCornerIndex].y
+  );
+  
+  // 눈썹 각도 계산을 위한 랜드마크 인덱스
+  const leftEyebrowOuterIndex = 70;  // 왼쪽 눈썹 바깥쪽
+  const leftEyebrowInnerIndex = 105;  // 왼쪽 눈썹 안쪽
+  const rightEyebrowInnerIndex = 334; // 오른쪽 눈썹 안쪽
+  const rightEyebrowOuterIndex = 300; // 오른쪽 눈썹 바깥쪽
+  
+  // 눈썹 각도 계산
+  const leftEyebrowAngle = calculateAngle(
+    landmarks[leftEyebrowOuterIndex].x, landmarks[leftEyebrowOuterIndex].y,
+    landmarks[leftEyebrowInnerIndex].x, landmarks[leftEyebrowInnerIndex].y
+  );
+  
+  const rightEyebrowAngle = calculateAngle(
+    landmarks[rightEyebrowInnerIndex].x, landmarks[rightEyebrowInnerIndex].y,
+    landmarks[rightEyebrowOuterIndex].x, landmarks[rightEyebrowOuterIndex].y
+  );
+  
+  // 향상된 얼굴 좌우 대칭 점수 (fSR) 계산
+  // 1. 눈 각도 차이
+  const eyeAngleDiff = Math.abs(leftEyeAngle - Math.abs(rightEyeAngle));
+  
+  // 2. 눈썹 각도 차이
+  const eyebrowAngleDiff = Math.abs(leftEyebrowAngle - Math.abs(rightEyebrowAngle));
+  
+  // 3. 콧망울 크기 차이
+  const nostrilSizeDiff = Math.abs(nostrilSize_L - nostrilSize_R) / ((nostrilSize_L + nostrilSize_R) / 2);
+  
+  // 4. 입술 대칭성 (왼쪽과 오른쪽 입꼬리 각도 차이)
+  const lipAngleDiff = Math.abs(leftLipAngle - Math.abs(rightLipAngle));
+  
+  // 가중치 부여 (각 요소의 중요도에 따라 조정)
+  const eyeWeight = 0.35;       // 눈 각도의 중요도
+  const eyebrowWeight = 0.2;    // 눈썹 각도의 중요도
+  const nostrilWeight = 0.2;    // 콧망울 크기의 중요도
+  const lipWeight = 0.25;       // 입술 각도의 중요도
+  
+  // 정규화된 차이값 (0~1 사이 값으로 변환)
+  const normalizedEyeAngleDiff = Math.min(eyeAngleDiff / 10, 1);          // 최대 10도 차이를 1로 정규화
+  const normalizedEyebrowAngleDiff = Math.min(eyebrowAngleDiff / 15, 1);  // 최대 15도 차이를 1로 정규화
+  const normalizedNostrilDiff = nostrilSizeDiff;                         // 이미 비율로 계산됨
+  const normalizedLipAngleDiff = Math.min(lipAngleDiff / 12, 1);         // 최대 12도 차이를 1로 정규화
+  
+  // 가중합으로 대칭성 점수 계산 (0에 가까울수록 대칭적, 1에 가까울수록 비대칭적)
+  const asymmetryScore = 
+    (eyeWeight * normalizedEyeAngleDiff) +
+    (eyebrowWeight * normalizedEyebrowAngleDiff) +
+    (nostrilWeight * normalizedNostrilDiff) +
+    (lipWeight * normalizedLipAngleDiff);
+  
+  // 최종 대칭성 점수 (1에 가까울수록 대칭적, 0에 가까울수록 비대칭적)
+  const fSR = 1 - asymmetryScore;
   
   // 눈 색상 추출 함수 - 실제 구현에서는 이미지 데이터를 받아서 처리해야 함
   const extractEyeColors = (video: HTMLVideoElement, landmarks: any) => {
