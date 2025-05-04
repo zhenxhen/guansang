@@ -142,9 +142,16 @@ const drawFeatureBar = ({
   ctx.fillStyle ='rgba(255, 255, 255, 0.2)';
   drawRoundedRect(ctx, boxX + 90, barY, barWidth, barHeight, barRadius);
   
-  // fWHR 값이 0~3 범위일 때 바 너비를 적절히 계산
-  const maxValue = 2.5; // 최대값을 3으로 설정
-  let fillWidth = barWidth * (value / maxValue); // 값을 최대값으로 나눠 비율 계산
+  // 라벨에 따라 다른 최대값 적용
+  let maxValue = 1.0; // 기본값 (fSR 등 다른 지표용)
+  
+  // fWHR인 경우 최대값을 3.0으로 설정
+  if (label === 'fWHR') {
+    maxValue = 3.0;
+  }
+  
+  // 값에 따른 바 너비 계산 - 라벨별 최대값 적용
+  let fillWidth = barWidth * (value / maxValue);
   
   // 바 너비가 최소 픽셀 크기보다 작으면 최소 크기로 설정
   const MIN_PIXEL_WIDTH = 10; // 최소 픽셀 너비 (10픽셀)
@@ -860,21 +867,86 @@ export const calculateFaceFeatures = (landmarks: any) => {
   const videoElement = document.querySelector('video');
   const { leftEyeColor, rightEyeColor } = extractEyeColors(videoElement as HTMLVideoElement, landmarks);
   
-  return {
-    faceWidth,
-    faceHeight,
-    noseHeight,
-    noseLength: adjustedNoseLength, // 조정된 코 길이 사용
-    nostrilSize_L,
-    nostrilSize_R,
-    leftEyeAngle,
-    rightEyeAngle,
-    fWHR,
-    fSR,
-    lowerLipThickness,
-    eyeAngleDeg_L: Math.abs(leftEyeAngle),
-    eyeAngleDeg_R: Math.abs(rightEyeAngle),
-    leftEyeColor,
-    rightEyeColor
+  // 기기 플랫폼 감지 함수
+  const detectDevicePlatform = () => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    const isAndroid = /Android/.test(navigator.userAgent);
+    
+    if (isIOS) return 'iOS';
+    if (isAndroid) return 'Android';
+    return 'Desktop'; // 기본값은 Desktop
   };
+
+  // 현재 기기 플랫폼 확인
+  const platform = detectDevicePlatform();
+
+  // 기기 플랫폼에 따른 계산 적용
+  if (platform === 'iOS' || platform === 'Android') {
+    // 모바일 디바이스(iOS/Android)에서는 계산식 변경
+
+    // 1. fWHR 계산식의 분자와 분모 바꾸기
+    const rawFaceRatio = faceWidth / faceHeight; // 분자와 분모 바꿈 (원래는 height/width)
+    
+    // 다음 처리 단계 (normalizedFaceRatio 계산 등)
+    // ...
+
+    // 2. 코 길이 계산에 *3 (원래 계산된 값에 3배 적용)
+    const noseLength = Math.sqrt(
+      Math.pow(landmarks[noseBridgeTop].x - landmarks[noseIndex].x, 2) +
+      Math.pow(landmarks[noseBridgeTop].y - landmarks[noseIndex].y, 2)
+    ) * 3; // *3 적용
+    
+    // 3. 코 높이 계산에 /3 (원래 계산된 값을 3으로 나눔)
+    const noseHeight = Math.sqrt(
+      Math.pow(landmarks[betweenEyesIndex].x - landmarks[noseIndex].x, 2) +
+      Math.pow(landmarks[betweenEyesIndex].y - landmarks[noseIndex].y, 2)
+    ) / 3; // /3 적용
+    
+    // 4. 아랫입술 두께 계산에 *3 (원래 계산된 값에 3배 적용)
+    const lowerLipThickness = Math.abs(
+      landmarks[lowerLipIndex].y - landmarks[innerLipBottomIndex].y
+    ) * 3; // *3 적용
+    
+    // 수정된 값들을 결과 객체에 설정
+    return {
+      faceWidth,
+      faceHeight,
+      noseHeight,
+      noseLength,
+      nostrilSize_L,
+      nostrilSize_R,
+      leftEyeAngle,
+      rightEyeAngle,
+      fWHR: rawFaceRatio,
+      fSR,
+      lowerLipThickness,
+      eyeAngleDeg_L: Math.abs(leftEyeAngle),
+      eyeAngleDeg_R: Math.abs(rightEyeAngle),
+      leftEyeColor,
+      rightEyeColor
+    };
+  } else {
+    // PC(Desktop)에서는 원래 계산값 그대로 사용
+    // 기존 코드를 그대로 유지
+    const rawFaceRatio = faceHeight / faceWidth;
+    
+    // 기존 값 그대로 반환
+    return {
+      faceWidth,
+      faceHeight,
+      noseHeight,
+      noseLength,
+      nostrilSize_L,
+      nostrilSize_R,
+      leftEyeAngle,
+      rightEyeAngle,
+      fWHR: rawFaceRatio,
+      fSR,
+      lowerLipThickness,
+      eyeAngleDeg_L: Math.abs(leftEyeAngle),
+      eyeAngleDeg_R: Math.abs(rightEyeAngle),
+      leftEyeColor,
+      rightEyeColor
+    };
+  }
 }; 
