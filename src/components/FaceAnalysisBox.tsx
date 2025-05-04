@@ -49,6 +49,22 @@ interface FaceAnalysisBoxProps {
   faceFeatures: any;
 }
 
+// 디바이스 유형 감지 함수
+const detectDeviceType = (): string => {
+  const userAgent = navigator.userAgent.toLowerCase();
+  
+  if (/iphone|ipad|ipod/.test(userAgent)) {
+    return 'iOS';
+  } else if (/android/.test(userAgent)) {
+    return 'Android';
+  } else {
+    return 'PC';
+  }
+};
+
+// 현재 디바이스 타입
+const deviceType = detectDeviceType();
+
 // 둥근 모서리 사각형 그리기 함수
 const drawRoundedRect = (
   ctx: CanvasRenderingContext2D, 
@@ -326,6 +342,33 @@ const drawNoseCircles = (
   
   // 2. x축 방향으로 -1 스케일링 (좌우 반전)
   ctx.scale(-1, 1);
+  
+  // 디바이스 정보를 화면 가운데 명확하게 표시
+  const deviceInfoText = `디바이스: ${deviceType}`;
+  ctx.font = 'bold 24px Arial';
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  
+  // 텍스트 배경 그리기
+  const textWidth = ctx.measureText(deviceInfoText).width;
+  const padding = 10;
+  const rectX = canvasWidth / 2 - textWidth / 2 - padding;
+  const rectY = canvasHeight / 3 - 15;
+  const rectWidth = textWidth + padding * 2;
+  const rectHeight = 30;
+  
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+  ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
+  
+  // 텍스트 그리기
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+  ctx.fillText(deviceInfoText, canvasWidth / 2, canvasHeight / 3);
+  
+  // 또한 상단에도 표시
+  ctx.textAlign = 'left';
+  ctx.font = 'bold 16px Arial';
+  ctx.fillText(`디바이스: ${deviceType}`, 20, 30);
   
   // 코 관련 랜드마크 인덱스
   const noseIndex = 1; // 코 끝
@@ -720,8 +763,29 @@ export const calculateFaceFeatures = (landmarks: any) => {
     Math.pow(landmarks[noseBridgeTop].y - landmarks[noseIndex].y, 2)
   );
 
-  // 기기 특화 코드 제거 - 모든 디바이스에서 동일하게 계산
-  const adjustedNoseLength = noseLength;
+  // 아랫입술 두께 계산
+  const lowerLipIndex = 15; // 아랫입술 하단 중앙
+  const innerLipBottomIndex = 17; // 입술 안쪽 하단 경계
+  const lowerLipThickness = Math.abs(landmarks[lowerLipIndex].y - landmarks[innerLipBottomIndex].y);
+
+  const deviceType = detectDeviceType();
+  
+  // 기기별 계산식 다르게 적용
+  let adjustedNoseLength = noseLength;
+  let adjustedNoseHeight = noseHeight;
+  let adjustedLowerLipThickness = lowerLipThickness;
+  let fWHR;
+
+  if (deviceType === 'iOS' || deviceType === 'Android') {
+    // 모바일 기기에서는 수정된 계산식 적용
+    fWHR = faceHeight / faceWidth; // fWHR 계산식의 분자와 분모 바꿈
+    adjustedNoseLength = noseLength * 3; // 코 길이 계산에 * 3
+    adjustedNoseHeight = noseHeight / 3; // 코 높이 계산에 / 3
+    adjustedLowerLipThickness = lowerLipThickness * 3; // 밑 입술 계산에 * 3
+  } else {
+    // PC에서는 기존 계산식 유지
+    fWHR = faceWidth / faceHeight;
+  }
 
   // 콧망울 크기 계산
   const leftNostrilIndex = 102;
@@ -749,14 +813,6 @@ export const calculateFaceFeatures = (landmarks: any) => {
     landmarks[rightEyeInnerIndex].x, landmarks[rightEyeInnerIndex].y,
     landmarks[rightEyeOuterIndex].x, landmarks[rightEyeOuterIndex].y
   );
-
-  // 아랫입술 두께 계산
-  const lowerLipIndex = 15; // 아랫입술 하단 중앙
-  const innerLipBottomIndex = 17; // 입술 안쪽 하단 경계
-  const lowerLipThickness = Math.abs(landmarks[lowerLipIndex].y - landmarks[innerLipBottomIndex].y);
-
-  // 얼굴 넓이-높이 비율 (fWHR)
-  const fWHR = faceWidth / faceHeight;
   
   // 얼굴 좌우 대칭 점수 (fSR) - 눈 각도, 콧망울 크기의 대칭성
   const eyeAngleDiff = Math.abs(leftEyeAngle - Math.abs(rightEyeAngle));
@@ -867,86 +923,21 @@ export const calculateFaceFeatures = (landmarks: any) => {
   const videoElement = document.querySelector('video');
   const { leftEyeColor, rightEyeColor } = extractEyeColors(videoElement as HTMLVideoElement, landmarks);
   
-  // 기기 플랫폼 감지 함수
-  const detectDevicePlatform = () => {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-    const isAndroid = /Android/.test(navigator.userAgent);
-    
-    if (isIOS) return 'iOS';
-    if (isAndroid) return 'Android';
-    return 'Desktop'; // 기본값은 Desktop
+  return {
+    faceWidth,
+    faceHeight,
+    noseHeight: adjustedNoseHeight, // 조정된 코 높이 사용
+    noseLength: adjustedNoseLength, // 조정된 코 길이 사용
+    nostrilSize_L,
+    nostrilSize_R,
+    leftEyeAngle,
+    rightEyeAngle,
+    fWHR,
+    fSR,
+    lowerLipThickness: adjustedLowerLipThickness, // 조정된 입술 두께 사용
+    eyeAngleDeg_L: Math.abs(leftEyeAngle),
+    eyeAngleDeg_R: Math.abs(rightEyeAngle),
+    leftEyeColor,
+    rightEyeColor
   };
-
-  // 현재 기기 플랫폼 확인
-  const platform = detectDevicePlatform();
-
-  // 기기 플랫폼에 따른 계산 적용
-  if (platform === 'iOS' || platform === 'Android') {
-    // 모바일 디바이스(iOS/Android)에서는 계산식 변경
-
-    // 1. fWHR 계산식의 분자와 분모 바꾸기
-    const rawFaceRatio = faceWidth / faceHeight; // 분자와 분모 바꿈 (원래는 height/width)
-    
-    // 다음 처리 단계 (normalizedFaceRatio 계산 등)
-    // ...
-
-    // 2. 코 길이 계산에 *3 (원래 계산된 값에 3배 적용)
-    const noseLength = Math.sqrt(
-      Math.pow(landmarks[noseBridgeTop].x - landmarks[noseIndex].x, 2) +
-      Math.pow(landmarks[noseBridgeTop].y - landmarks[noseIndex].y, 2)
-    ) * 3; // *3 적용
-    
-    // 3. 코 높이 계산에 /3 (원래 계산된 값을 3으로 나눔)
-    const noseHeight = Math.sqrt(
-      Math.pow(landmarks[betweenEyesIndex].x - landmarks[noseIndex].x, 2) +
-      Math.pow(landmarks[betweenEyesIndex].y - landmarks[noseIndex].y, 2)
-    ) / 3; // /3 적용
-    
-    // 4. 아랫입술 두께 계산에 *3 (원래 계산된 값에 3배 적용)
-    const lowerLipThickness = Math.abs(
-      landmarks[lowerLipIndex].y - landmarks[innerLipBottomIndex].y
-    ) * 3; // *3 적용
-    
-    // 수정된 값들을 결과 객체에 설정
-    return {
-      faceWidth,
-      faceHeight,
-      noseHeight,
-      noseLength,
-      nostrilSize_L,
-      nostrilSize_R,
-      leftEyeAngle,
-      rightEyeAngle,
-      fWHR: rawFaceRatio,
-      fSR,
-      lowerLipThickness,
-      eyeAngleDeg_L: Math.abs(leftEyeAngle),
-      eyeAngleDeg_R: Math.abs(rightEyeAngle),
-      leftEyeColor,
-      rightEyeColor
-    };
-  } else {
-    // PC(Desktop)에서는 원래 계산값 그대로 사용
-    // 기존 코드를 그대로 유지
-    const rawFaceRatio = faceHeight / faceWidth;
-    
-    // 기존 값 그대로 반환
-    return {
-      faceWidth,
-      faceHeight,
-      noseHeight,
-      noseLength,
-      nostrilSize_L,
-      nostrilSize_R,
-      leftEyeAngle,
-      rightEyeAngle,
-      fWHR: rawFaceRatio,
-      fSR,
-      lowerLipThickness,
-      eyeAngleDeg_L: Math.abs(leftEyeAngle),
-      eyeAngleDeg_R: Math.abs(rightEyeAngle),
-      leftEyeColor,
-      rightEyeColor
-    };
-  }
 }; 
