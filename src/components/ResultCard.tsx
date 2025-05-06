@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import styled, { createGlobalStyle, css } from 'styled-components';
+import styled, { createGlobalStyle, css, keyframes } from 'styled-components';
 import html2canvas from 'html2canvas';
 
 // 전역 스타일 설정
@@ -15,12 +15,25 @@ const GlobalStyle = createGlobalStyle`
     padding: 0;
     overflow: hidden;
     background-color: #000;
+    perspective: 1000px;
   }
 
   @media (min-width: 480px) {
     body {
       background-color: #fff;
     }
+  }
+`;
+
+// 애니메이션 키프레임 정의
+const fadeInUp = keyframes`
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 `;
 
@@ -95,6 +108,18 @@ interface FaceFeatures {
   [key: string]: number | string | undefined;
 }
 
+// 그라데이션을 위한 8가지 색상 정의
+const gradientColors = [
+  { name: 'deepBlue', value: '30, 50, 80' },
+  { name: 'purple', value: '70, 30, 90' },
+  { name: 'teal', value: '20, 80, 80' },
+  { name: 'burgundy', value: '80, 20, 40' },
+  { name: 'forestGreen', value: '30, 70, 30' },
+  { name: 'darkNavy', value: '20, 30, 60' },
+  { name: 'maroon', value: '90, 20, 30' },
+  { name: 'slate', value: '50, 60, 70' }
+];
+
 interface ResultCardProps {
   result: FaceFeatures | null;
   onRetake: () => void;
@@ -106,11 +131,10 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100vw;
-  height: 100vh;
-  background-color: #000;
-  padding: 0;
+  min-height: 100vh;
+  background-color: #fff;
   margin: 0;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
   position: fixed;
@@ -118,8 +142,10 @@ const Container = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  overflow: hidden;
+  overflow: auto;
   box-sizing: border-box;
+  padding: 30px 15px;
+  perspective: 1000px;
 
   @media (min-width: 480px) {
     position: static;
@@ -129,39 +155,127 @@ const Container = styled.div`
     align-items: center;
     justify-content: center;
     overflow: auto;
-    padding: 20px 0;
+    padding: 50px 0;
     background-color: #fff;
   }
 `;
 
-const Header = styled.div`
+const Header = styled.div<{ isVisible: boolean }>`
   text-align: center;
   z-index: 20;
-  padding: 30px 0 10px;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  padding: 0 0 20px;
+  width: 100%;
+  opacity: ${props => props.isVisible ? 1 : 0};
+  transform: ${props => props.isVisible ? 'translateY(0)' : 'translateY(20px)'};
+  transition: opacity 0.6s ease, transform 0.6s ease;
 `;
 
-const CardWrapper = styled.div`
-  width: 100%;
-  height: 100%;
+const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean }>`
+  width: 90%;
+  max-width: 380px;
+  height: 70vh;
   display: flex;
   flex-direction: column;
   position: relative;
+  border-radius: 20px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  background-color: transparent;
+  margin: auto;
+  overflow: hidden;
+  transition: transform 0.8s, opacity 0.6s ease;
+  transform-style: preserve-3d;
+  transform: ${props => props.isFlipped 
+    ? 'rotateY(180deg) translateZ(20px)' 
+    : props.isVisible 
+      ? 'rotateY(0) translateZ(0)' 
+      : 'rotateY(0) translateZ(0)'};
+  opacity: ${props => props.isVisible ? 1 : 0};
+  cursor: ${props => props.isVisible ? 'pointer' : 'default'};
 
   @media (min-width: 480px) {
     width: 480px;
     height: 800px;
     border-radius: 20px;
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-    background-color: #000;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    background-color: transparent;
     margin: auto;
     overflow: hidden;
     display: flex;
     flex-direction: column;
   }
+`;
+
+const GradientOverlay = styled.div<{ color: string }>`
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30%;
+  background: ${props => `linear-gradient(to top, rgba(${props.color}, 0.3) 0%, rgba(${props.color}, 0.1) 60%, rgba(${props.color}, 0) 100%)`};
+  z-index: 15;
+  pointer-events: none;
+  border-bottom-left-radius: 20px;
+  border-bottom-right-radius: 20px;
+`;
+
+const CardFront = styled.div<{ isFlipped: boolean }>`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transition: opacity 0.3s ease-in-out ${props => props.isFlipped ? '0s' : '0.3s'};
+  opacity: ${props => props.isFlipped ? 0 : 1};
+  transform: translateZ(0);
+  class-name: card-front;
+  background-color: #000;
+  border-radius: 20px;
+`;
+
+const CardBack = styled.div<{ isFlipped: boolean }>`
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  transform: rotateY(180deg) translateZ(0);
+  background-color: transparent;
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  color: #9F9F9F;
+  transition: opacity 0.3s ease-in-out;
+  opacity: ${props => props.isFlipped ? 1 : 0};
+  class-name: card-back;
+  z-index: 20;
+  transform-style: preserve-3d;
+`;
+
+const CardBackContent = styled.div`
+  text-align: center;
+  max-width: 80%;
+  width: 100%;
+  z-index: 25;
+  transform: scaleX(-1);
+`;
+
+const CardBackTitle = styled.h2`
+  font-size: 20px;
+  margin-bottom: 20px;
+  font-weight: 700;
+  color: #797979;
+  transform: scaleX(-1);
+`;
+
+const CardBackDescription = styled.p`
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  color: #797979;
+  transform: scaleX(-1);
 `;
 
 const FullScreenCard = styled.div`
@@ -177,10 +291,7 @@ const FullScreenCard = styled.div`
   bottom: 0;
   width: 100%;
   height: 100%;
-
-  @media (min-width: 480px) {
-    border-radius: 20px;
-  }
+  border-radius: 20px;
 `;
 
 const FaceContainer = styled.div`
@@ -221,7 +332,7 @@ const DataItem = styled.div<{
   display: flex;
   flex-direction: column;
   align-items: ${props => props.textAlign === 'left' ? 'flex-start' : props.textAlign === 'right' ? 'flex-end' : 'center'};
-  z-index: 2;
+  z-index: 15;
   max-width: ${props => responsiveStyles[props.screenSize].maxWidth};
   transition: font-size 0.2s ease;
 `;
@@ -248,26 +359,20 @@ const ColorCircle = styled.div<{ color: string, screenSize: 'extraSmall' | 'smal
   margin-top: 2px;
 `;
 
-const ButtonsContainer = styled.div`
-  display: fixed;
+const ButtonsContainer = styled.div<{ isVisible: boolean }>`
+  display: flex;
   gap: 16px;
-  position: absolute;
-  bottom: 50px;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
+  margin: 20px auto 0;
   width: 100%;
   justify-content: center;
   z-index: 20;
-
-  @media (min-width: 480px) {
-    position: absolute;
-    bottom: 30px;
-  }
+  opacity: ${props => props.isVisible ? 1 : 0};
+  transform: ${props => props.isVisible ? 'translateY(0)' : 'translateY(20px)'};
+  transition: opacity 0.6s ease, transform 0.6s ease;
 `;
 
 const Button = styled.button`
-  display: fixed;
+  display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
@@ -292,57 +397,35 @@ const Button = styled.button`
   }
 `;
 
-const InterpretButton = styled.button`
-  position: pixed;
-  bottom: 120px;
+const InterpretText = styled.div<{ isVisible: boolean }>`
+  position: absolute;
+  bottom: 40px;
   left: 0;
   right: 0;
   margin: 0 auto;
   width: 100%;
-  max-width: 250px;
-  height: 50px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  color: white;
-  border: none;
-  border-radius: 5px;
-  font-size: 14px;
+  max-width: 280px;
+  text-align: center;
+  color: #797979;
+  font-size: 20px;
   font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  z-index: 20;
+  z-index: 25;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-  
-  &:active {
-    transform: scale(0.98);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  }
-
-  @media (min-width: 480px) {
-    position: absolute;
-    bottom: 80px;
-  }
+  opacity: ${props => props.isVisible ? 1 : 0};
+  transform: ${props => props.isVisible ? 'translateY(0)' : 'translateY(20px)'};
+  transition: opacity 0.6s ease, transform 0.6s ease;
 `;
 
-const Footer = styled.div`
-  position: fixed;
-  bottom: 10px;
-  left: 0;
-  right: 0;
+const Footer = styled.div<{ isVisible?: boolean }>`
+  margin-top: 30px;
   text-align: center;
   width: 100%;
   background: transparent;
   font-family: 'Pretendard', sans-serif;
   z-index: 20;
-
-  @media (min-width: 480px) {
-    position: absolute;
-    bottom: 10px;
-  }
+  opacity: ${props => props.isVisible ? 1 : 0};
+  transform: ${props => props.isVisible ? 'translateY(0)' : 'translateY(20px)'};
+  transition: opacity 0.6s ease, transform 0.6s ease;
 `;
 
 const Copyright = styled.div`
@@ -369,11 +452,49 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
   const cardRef = useRef<HTMLDivElement>(null);
   const [screenSize, setScreenSize] = useState<'extraSmall' | 'small' | 'medium' | 'large'>('medium');
   const [forCapture, setForCapture] = useState(false);
+  const [gradientColor, setGradientColor] = useState('30, 30, 30');
+  const [isFlipped, setIsFlipped] = useState(false);
+  const [showBackContent, setShowBackContent] = useState(false);
+  const [contentTransitioning, setContentTransitioning] = useState(false);
+  
+  // 랜딩 애니메이션 상태
+  const [animationState, setAnimationState] = useState({
+    logoVisible: false,
+    cardVisible: false,
+    titleVisible: false,
+    buttonsVisible: false,
+    footerVisible: false
+  });
+  const [animationComplete, setAnimationComplete] = useState(false);
+  
+  // 컴포넌트 마운트 시 랜덤 색상 선택
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * gradientColors.length);
+    setGradientColor(gradientColors[randomIndex].value);
+    
+    // 랜딩 애니메이션 시작
+    setTimeout(() => setAnimationState(prev => ({ ...prev, logoVisible: true })), 100);
+    setTimeout(() => setAnimationState(prev => ({ ...prev, cardVisible: true })), 500); // 0.4초 후
+    setTimeout(() => setAnimationState(prev => ({ ...prev, titleVisible: true })), 900); // 0.8초 후
+    setTimeout(() => {
+      setAnimationState(prev => ({ ...prev, buttonsVisible: true }));
+      // 모든 애니메이션 완료 후 상호작용 활성화
+      setTimeout(() => {
+        setAnimationState(prev => ({ ...prev, footerVisible: true }));
+        setAnimationComplete(true);
+      }, 400);
+    }, 1300); // 1.2초 후
+  }, []);
   
   // 화면 크기에 따라 텍스트 크기 조정 - 최적화된 버전
   const handleResize = useCallback(debounce(() => {
-    // 모든 화면 크기에서 medium 사이즈로 통일
-    setScreenSize('medium');
+    if (window.innerWidth < 360) {
+      setScreenSize('extraSmall');
+    } else if (window.innerWidth < 480) {
+      setScreenSize('small');
+    } else {
+      setScreenSize('medium');
+    }
   }, 100), []);
   
   useEffect(() => {
@@ -397,13 +518,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
     document.body.style.margin = '0';
     document.body.style.padding = '0';
     document.body.style.overflow = 'hidden';
-    
-    // 모바일일 때는 검은색, PC일 때는 하얀색 배경
-    if (window.innerWidth >= 480) {
-      document.body.style.backgroundColor = '#fff';
-    } else {
-      document.body.style.backgroundColor = '#000';
-    }
+    document.body.style.backgroundColor = '#fff';
     
     // 컴포넌트 언마운트 시 복원
     return () => {
@@ -453,6 +568,37 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
     }, 100); // DOM 업데이트를 위한 짧은 지연
   };
   
+  // 카드 뒤집기 핸들러
+  const handleCardFlip = () => {
+    if (contentTransitioning || !animationComplete) return; // 애니메이션 완료 전이나 전환 중에는 클릭 방지
+    
+    setContentTransitioning(true);
+    
+    // 앞면이 보이고 있다면, 먼저 앞면을 숨김
+    if (!isFlipped) {
+      setShowBackContent(false);
+      setTimeout(() => {
+        setIsFlipped(true);
+        // 카드가 90도 회전한 후에 뒷면 내용 표시
+        setTimeout(() => {
+          setShowBackContent(true);
+          setContentTransitioning(false);
+        }, 400); // 회전 애니메이션 중간 지점에서 내용 전환
+      }, 100); // 앞면이 사라진 후 카드 회전 시작
+    } else {
+      // 뒷면이 보이고 있다면, 먼저 뒷면을 숨김
+      setShowBackContent(false);
+      setTimeout(() => {
+        setIsFlipped(false);
+        // 카드가 90도 회전한 후에 앞면 내용 표시
+        setTimeout(() => {
+          setShowBackContent(true);
+          setContentTransitioning(false);
+        }, 400); // 회전 애니메이션 중간 지점에서 내용 전환
+      }, 100); // 뒷면이 사라진 후 카드 회전 시작
+    }
+  };
+  
   if (!result) return null;
 
   return (
@@ -460,119 +606,139 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
       <GlobalStyle />
       <CaptureStyles forCapture={forCapture} />
       <Container ref={containerRef}>
-        <CardWrapper ref={cardRef}>
-          <FullScreenCard>
-            <FaceContainer>
-              <FaceImage src={`${process.env.PUBLIC_URL}/images/result_face.png`} alt="Face Analysis" />
-              
-              {/* 상단 측정 결과 */}
-              <DataItem top="20%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
-                <DataLabel screenSize={screenSize}>얼굴 너비-높이 비율</DataLabel>
-                <DataValue screenSize={screenSize}>{(result.faceRatio * 0.4 + 0.5).toFixed(2)}</DataValue>
-              </DataItem>
-              
-              {/* 왼쪽 상단 */}
-              <DataItem top="33%" left="15%" textAlign="left" screenSize={screenSize}>
-                <DataLabel screenSize={screenSize}>왼쪽 눈 색상</DataLabel>
-                <ColorCircle color={result.eyeIrisColor_L || '#130603'} style={{ margin: '0 auto' }} screenSize={screenSize} />
-              </DataItem>
-              
-              {/* 오른쪽 상단 */}
-              <DataItem top="33%" right="15%" textAlign="right" screenSize={screenSize}>
-                <DataLabel screenSize={screenSize}>오른쪽 눈 색상</DataLabel>
-                <ColorCircle color={result.eyeIrisColor_R || '#190705'} style={{ margin: '0 auto' }} screenSize={screenSize} />
-              </DataItem>
-              
-              {/* 얼굴 대칭성 */}
-              <DataItem top="25%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
-                <DataLabel screenSize={screenSize}>얼굴 대칭성</DataLabel>
-                <DataValue screenSize={screenSize}>{(result.symmetryScore * 100).toFixed(0)}%</DataValue>
-              </DataItem>
-              
-              {/* 왼쪽 중앙 */}
-              <DataItem top="27%" left="12%" textAlign="left" screenSize={screenSize}>
-                <DataLabel screenSize={screenSize}>왼쪽 눈 기울기</DataLabel>
-                <DataValue screenSize={screenSize}>{result.eyeAngleDeg_L.toFixed(1)}°</DataValue>
-              </DataItem>
-              
-              {/* 오른쪽 중앙 */}
-              <DataItem top="27%" right="12%" textAlign="right" screenSize={screenSize}>
-                <DataLabel screenSize={screenSize}>오른쪽 눈 기울기</DataLabel>
-                <DataValue screenSize={screenSize}>{result.eyeAngleDeg_R.toFixed(1)}°</DataValue>
-              </DataItem>
-              
-              {/* 눈 사이 거리 */}
-              <DataItem top="30%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
-                <DataLabel screenSize={screenSize}>눈 사이 거리</DataLabel>
-                <DataValue screenSize={screenSize}>{result.eyeDistanceRatio.toFixed(2)}</DataValue>
-              </DataItem>
-              
-              {/* 코 길이 */}
-              <DataItem top="35%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
-                <DataLabel screenSize={screenSize}>코 길이</DataLabel>
-                <DataValue screenSize={screenSize}>{result.noseLength.toFixed(2)}</DataValue>
-              </DataItem>
-              
-              {/* 코 높이 */}
-              <DataItem top="40%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
-                <DataLabel screenSize={screenSize}>코 높이</DataLabel>
-                <DataValue screenSize={screenSize}>{result.noseHeight.toFixed(2)}</DataValue>
-              </DataItem>
-              
-              {/* 왼쪽 콧망울 */}
-              <DataItem top="40%" left="20%" textAlign="left" screenSize={screenSize}>
-                <DataLabel screenSize={screenSize}>왼쪽 콧망울 크기</DataLabel>
-                <DataValue screenSize={screenSize}>{result.nostrilSize_L.toFixed(2)}</DataValue>
-              </DataItem>
-              
-              {/* 오른쪽 콧망울 */}
-              <DataItem top="40%" right="20%" textAlign="right" screenSize={screenSize}>
-                <DataLabel screenSize={screenSize}>오른쪽 콧망울 크기</DataLabel>
-                <DataValue screenSize={screenSize}>{result.nostrilSize_R.toFixed(2)}</DataValue>
-              </DataItem>
-              
-              {/* 아랫입술 두께 */}
-              <DataItem top="50%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
-                <DataLabel screenSize={screenSize}>아랫입술 두께</DataLabel>
-                <DataValue screenSize={screenSize}>{result.lowerLipThickness.toFixed(2)}</DataValue>
-              </DataItem>
-              
-              {/* 피부 색상 */}
-              <DataItem bottom="40%" left="25%" textAlign="center" screenSize={screenSize}>
-                <DataLabel screenSize={screenSize}>피부 색상</DataLabel>
-                <ColorCircle color={result.skinToneColor || '#c6b7b0'} style={{ margin: '0 auto' }} screenSize={screenSize} />
-              </DataItem>
-              
-              {/* 다크서클 색상 */}
-              <DataItem bottom="40%" right="25%" textAlign="center" screenSize={screenSize}>
-                <DataLabel screenSize={screenSize}>다크서클 색상</DataLabel>
-                <ColorCircle color={result.eyeDarkCircleColor || '#807673'} style={{ margin: '0 auto' }} screenSize={screenSize} />
-              </DataItem>
-            </FaceContainer>
-          </FullScreenCard>
+        <Header isVisible={animationState.logoVisible}>
+          <img src={`${process.env.PUBLIC_URL}/images/icon/logo-white.png`} alt="관상 로고" style={{ height: '40px', opacity: 0.3}} />
+        </Header>
+        
+        <CardWrapper 
+          ref={cardRef} 
+          isFlipped={isFlipped} 
+          isVisible={animationState.cardVisible}
+          onClick={animationComplete ? handleCardFlip : undefined}
+        >
+          <GradientOverlay color={gradientColor} />
+          <CardFront isFlipped={isFlipped} id="card-front">
+            {(!isFlipped || showBackContent) && (
+              <>
+                <FullScreenCard>
+                  <FaceContainer>
+                    <FaceImage src={`${process.env.PUBLIC_URL}/images/result_face.png`} alt="Face Analysis" />
+                    
+                    {/* 상단 측정 결과 */}
+                    <DataItem top="20%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
+                      <DataLabel screenSize={screenSize}>얼굴 너비-높이 비율</DataLabel>
+                      <DataValue screenSize={screenSize}>{(result.faceRatio * 0.4 + 0.5).toFixed(2)}</DataValue>
+                    </DataItem>
+                    
+                    {/* 왼쪽 상단 */}
+                    <DataItem top="33%" left="15%" textAlign="left" screenSize={screenSize}>
+                      <DataLabel screenSize={screenSize}>왼쪽 눈 색상</DataLabel>
+                      <ColorCircle color={result.eyeIrisColor_L || '#130603'} style={{ margin: '0 auto' }} screenSize={screenSize} />
+                    </DataItem>
+                    
+                    {/* 오른쪽 상단 */}
+                    <DataItem top="33%" right="15%" textAlign="right" screenSize={screenSize}>
+                      <DataLabel screenSize={screenSize}>오른쪽 눈 색상</DataLabel>
+                      <ColorCircle color={result.eyeIrisColor_R || '#190705'} style={{ margin: '0 auto' }} screenSize={screenSize} />
+                    </DataItem>
+                    
+                    {/* 얼굴 대칭성 */}
+                    <DataItem top="25%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
+                      <DataLabel screenSize={screenSize}>얼굴 대칭성</DataLabel>
+                      <DataValue screenSize={screenSize}>{(result.symmetryScore * 100).toFixed(0)}%</DataValue>
+                    </DataItem>
+                    
+                    {/* 왼쪽 중앙 */}
+                    <DataItem top="27%" left="12%" textAlign="left" screenSize={screenSize}>
+                      <DataLabel screenSize={screenSize}>왼쪽 눈 기울기</DataLabel>
+                      <DataValue screenSize={screenSize}>{result.eyeAngleDeg_L.toFixed(1)}°</DataValue>
+                    </DataItem>
+                    
+                    {/* 오른쪽 중앙 */}
+                    <DataItem top="27%" right="12%" textAlign="right" screenSize={screenSize}>
+                      <DataLabel screenSize={screenSize}>오른쪽 눈 기울기</DataLabel>
+                      <DataValue screenSize={screenSize}>{result.eyeAngleDeg_R.toFixed(1)}°</DataValue>
+                    </DataItem>
+                    
+                    {/* 눈 사이 거리 */}
+                    <DataItem top="30%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
+                      <DataLabel screenSize={screenSize}>눈 사이 거리</DataLabel>
+                      <DataValue screenSize={screenSize}>{result.eyeDistanceRatio.toFixed(2)}</DataValue>
+                    </DataItem>
+                    
+                    {/* 코 길이 */}
+                    <DataItem top="35%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
+                      <DataLabel screenSize={screenSize}>코 길이</DataLabel>
+                      <DataValue screenSize={screenSize}>{result.noseLength.toFixed(2)}</DataValue>
+                    </DataItem>
+                    
+                    {/* 코 높이 */}
+                    <DataItem top="40%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
+                      <DataLabel screenSize={screenSize}>코 높이</DataLabel>
+                      <DataValue screenSize={screenSize}>{result.noseHeight.toFixed(2)}</DataValue>
+                    </DataItem>
+                    
+                    {/* 왼쪽 콧망울 */}
+                    <DataItem top="40%" left="20%" textAlign="left" screenSize={screenSize}>
+                      <DataLabel screenSize={screenSize}>왼쪽 콧망울 크기</DataLabel>
+                      <DataValue screenSize={screenSize}>{result.nostrilSize_L.toFixed(2)}</DataValue>
+                    </DataItem>
+                    
+                    {/* 오른쪽 콧망울 */}
+                    <DataItem top="40%" right="20%" textAlign="right" screenSize={screenSize}>
+                      <DataLabel screenSize={screenSize}>오른쪽 콧망울 크기</DataLabel>
+                      <DataValue screenSize={screenSize}>{result.nostrilSize_R.toFixed(2)}</DataValue>
+                    </DataItem>
+                    
+                    {/* 아랫입술 두께 */}
+                    <DataItem top="50%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
+                      <DataLabel screenSize={screenSize}>아랫입술 두께</DataLabel>
+                      <DataValue screenSize={screenSize}>{result.lowerLipThickness.toFixed(2)}</DataValue>
+                    </DataItem>
+                    
+                    {/* 피부 색상 */}
+                    <DataItem bottom="40%" left="25%" textAlign="center" screenSize={screenSize}>
+                      <DataLabel screenSize={screenSize}>피부 색상</DataLabel>
+                      <ColorCircle color={result.skinToneColor || '#c6b7b0'} style={{ margin: '0 auto' }} screenSize={screenSize} />
+                    </DataItem>
+                    
+                    {/* 다크서클 색상 */}
+                    <DataItem bottom="40%" right="25%" textAlign="center" screenSize={screenSize}>
+                      <DataLabel screenSize={screenSize}>다크서클 색상</DataLabel>
+                      <ColorCircle color={result.eyeDarkCircleColor || '#807673'} style={{ margin: '0 auto' }} screenSize={screenSize} />
+                    </DataItem>
+                  </FaceContainer>
+                </FullScreenCard>
+                
+                <InterpretText isVisible={animationState.titleVisible}>
+                  AI_title
+                </InterpretText>
+              </>
+            )}
+          </CardFront>
           
-          <Header>
-            <img src={`${process.env.PUBLIC_URL}/images/icon/logo-white.png`} alt="관상 로고" style={{ height: '80px', opacity: 0.5}} />
-          </Header>
-          
-          <InterpretButton>
-            Interpret with AI
-          </InterpretButton>
-          
-          <ButtonsContainer>
-            <Button onClick={onRetake}>
-              <img src={`${process.env.PUBLIC_URL}/images/icon/retake.png`} alt="다시 찍기" />
-            </Button>
-            {/* <Button onClick={captureScreen}>
-              <img src={`${process.env.PUBLIC_URL}/images/icon/save.png`} alt="카드 저장" />
-            </Button> */}
-          </ButtonsContainer>
-
-          <Footer>
-            <Copyright>© 2025 eeezeen. All rights reserved.</Copyright>
-          </Footer>
-
+          <CardBack isFlipped={isFlipped} id="card-back">
+            <CardBackContent>
+              <CardBackTitle>관상 분석 결과</CardBackTitle>
+              <CardBackDescription>
+                AI_description
+              </CardBackDescription>
+            </CardBackContent>
+          </CardBack>
         </CardWrapper>
+        
+        <ButtonsContainer isVisible={animationState.buttonsVisible}>
+          <Button onClick={onRetake}>
+            <img src={`${process.env.PUBLIC_URL}/images/icon/retake.png`} alt="다시 찍기" />
+          </Button>
+          <Button onClick={animationComplete ? handleCardFlip : undefined}>
+            <img src={`${process.env.PUBLIC_URL}/images/icon/flip.png`} alt="카드 뒤집기" />
+          </Button>
+        </ButtonsContainer>
+
+        <Footer isVisible={animationState.footerVisible}>
+          <Copyright>© 2025 eeezeen. All rights reserved.</Copyright>
+        </Footer>
       </Container>
     </>
   );
