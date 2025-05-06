@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/guansang/static/css/main.70efdf55.css",
-    "main.js": "/guansang/static/js/main.b21d4242.js",
+    "main.js": "/guansang/static/js/main.f98e5f92.js",
     "static/js/453.02ff153c.chunk.js": "/guansang/static/js/453.02ff153c.chunk.js",
     "index.html": "/guansang/index.html",
     "main.70efdf55.css.map": "/guansang/static/css/main.70efdf55.css.map",
-    "main.b21d4242.js.map": "/guansang/static/js/main.b21d4242.js.map",
+    "main.f98e5f92.js.map": "/guansang/static/js/main.f98e5f92.js.map",
     "453.02ff153c.chunk.js.map": "/guansang/static/js/453.02ff153c.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.70efdf55.css",
-    "static/js/main.b21d4242.js"
+    "static/js/main.f98e5f92.js"
   ]
 }
