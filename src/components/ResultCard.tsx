@@ -165,7 +165,7 @@ const Container = styled.div`
 const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean }>`
   width: 90%;
   max-width: 380px;
-  height: calc(70vh - 120px); // 버튼과 푸터 공간 확보
+  height: calc(90vh - 60px); // 버튼과 푸터 공간만 확보하도록 수정
   display: flex;
   flex-direction: column;
   position: relative;
