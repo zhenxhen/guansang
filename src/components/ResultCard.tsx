@@ -165,7 +165,7 @@ const Container = styled.div`
 const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean }>`
   width: 90%;
   max-width: 380px;
-  height: calc(90vh - 60px); // 버튼과 푸터 공간만 확보하도록 수정
+  height: calc(90vh - 60px);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -177,12 +177,13 @@ const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean }>`
   transition: transform 0.8s, opacity 0.6s ease;
   transform-style: preserve-3d;
   transform: ${props => props.isFlipped 
-    ? 'rotateY(180deg) translateZ(20px)' 
+    ? 'rotateY(180deg)' 
     : props.isVisible 
-      ? 'rotateY(0) translateZ(0)' 
-      : 'rotateY(0) translateZ(0)'};
+      ? 'rotateY(0)' 
+      : 'rotateY(0)'};
   opacity: ${props => props.isVisible ? 1 : 0};
   cursor: ${props => props.isVisible ? 'pointer' : 'default'};
+  perspective: 1000px;
 
   &::before {
     content: '';
@@ -591,32 +592,26 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
   
   // 카드 뒤집기 핸들러
   const handleCardFlip = () => {
-    if (contentTransitioning || !animationComplete) return; // 애니메이션 완료 전이나 전환 중에는 클릭 방지
+    if (contentTransitioning || !animationComplete) return;
     
     setContentTransitioning(true);
     
-    // 앞면이 보이고 있다면, 먼저 앞면을 숨김
     if (!isFlipped) {
-      setShowBackContent(false);
       setTimeout(() => {
         setIsFlipped(true);
-        // 카드가 90도 회전한 후에 뒷면 내용 표시
         setTimeout(() => {
           setShowBackContent(true);
           setContentTransitioning(false);
-        }, 400); // 회전 애니메이션 중간 지점에서 내용 전환
-      }, 100); // 앞면이 사라진 후 카드 회전 시작
+        }, 200);
+      }, 300);
     } else {
-      // 뒷면이 보이고 있다면, 먼저 뒷면을 숨김
-      setShowBackContent(false);
       setTimeout(() => {
         setIsFlipped(false);
-        // 카드가 90도 회전한 후에 앞면 내용 표시
         setTimeout(() => {
           setShowBackContent(true);
           setContentTransitioning(false);
-        }, 400); // 회전 애니메이션 중간 지점에서 내용 전환
-      }, 100); // 뒷면이 사라진 후 카드 회전 시작
+        }, 200);
+      }, 300);
     }
   };
   
