@@ -134,6 +134,7 @@ const Container = styled.div`
   justify-content: flex-start;
   width: 100vw;
   min-height: 100vh;
+  min-height: -webkit-fill-available; // iOS Safari를 위한 설정
   background-color: #fff;
   margin: 0;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
@@ -145,6 +146,7 @@ const Container = styled.div`
   overflow: auto;
   box-sizing: border-box;
   padding: 30px 15px;
+  padding-bottom: calc(env(safe-area-inset-bottom) + 30px); // iOS Safari 하단 영역 고려
   perspective: 1000px;
 
   @media (min-width: 480px) {
@@ -160,20 +162,10 @@ const Container = styled.div`
   }
 `;
 
-const Header = styled.div<{ isVisible: boolean }>`
-  text-align: center;
-  z-index: 20;
-  padding: 0 0 20px;
-  width: 100%;
-  opacity: ${props => props.isVisible ? 1 : 0};
-  transform: ${props => props.isVisible ? 'translateY(0)' : 'translateY(20px)'};
-  transition: opacity 0.6s ease, transform 0.6s ease;
-`;
-
 const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean }>`
   width: 90%;
   max-width: 380px;
-  height: 70vh;
+  height: calc(70vh - 120px); // 버튼과 푸터 공간 확보
   display: flex;
   flex-direction: column;
   position: relative;
@@ -191,6 +183,19 @@ const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean }>`
       : 'rotateY(0) translateZ(0)'};
   opacity: ${props => props.isVisible ? 1 : 0};
   cursor: ${props => props.isVisible ? 'pointer' : 'default'};
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 10;
+    pointer-events: none;
+    opacity: ${props => props.isFlipped ? 0 : 1};
+    transition: opacity 0.4s ease;
+  }
 
   @media (min-width: 480px) {
     width: 480px;
@@ -362,13 +367,15 @@ const ColorCircle = styled.div<{ color: string, screenSize: 'extraSmall' | 'smal
 const ButtonsContainer = styled.div<{ isVisible: boolean }>`
   display: flex;
   gap: 16px;
-  margin: 20px auto 0;
+  margin: 20px auto;
   width: 100%;
   justify-content: center;
   z-index: 20;
   opacity: ${props => props.isVisible ? 1 : 0};
   transform: ${props => props.isVisible ? 'translateY(0)' : 'translateY(20px)'};
   transition: opacity 0.6s ease, transform 0.6s ease;
+  position: relative;
+  padding-bottom: env(safe-area-inset-bottom); // iOS Safari 하단 영역 고려
 `;
 
 const Button = styled.button`
@@ -417,7 +424,7 @@ const InterpretText = styled.div<{ isVisible: boolean }>`
 `;
 
 const Footer = styled.div<{ isVisible?: boolean }>`
-  margin-top: 30px;
+  margin-top: 10px;
   text-align: center;
   width: 100%;
   background: transparent;
@@ -426,12 +433,26 @@ const Footer = styled.div<{ isVisible?: boolean }>`
   opacity: ${props => props.isVisible ? 1 : 0};
   transform: ${props => props.isVisible ? 'translateY(0)' : 'translateY(20px)'};
   transition: opacity 0.6s ease, transform 0.6s ease;
+  position: relative;
+  padding-bottom: env(safe-area-inset-bottom); // iOS Safari 하단 영역 고려
 `;
 
 const Copyright = styled.div`
   color: #999;
   font-size: 9px;
   font-family: 'Pretendard', sans-serif;
+`;
+
+const CardLogo = styled.div<{ isVisible: boolean }>`
+  position: absolute;
+  top: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  z-index: 20;
+  opacity: ${props => props.isVisible ? 1 : 0};
+  transform: ${props => props.isVisible ? 'translateY(0)' : 'translateY(20px)'};
+  transition: opacity 0.6s ease, transform 0.6s ease;
 `;
 
 // 디바운스 함수 추가
@@ -606,10 +627,6 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
       <GlobalStyle />
       <CaptureStyles forCapture={forCapture} />
       <Container ref={containerRef}>
-        <Header isVisible={animationState.logoVisible}>
-          <img src={`${process.env.PUBLIC_URL}/images/icon/logo-white.png`} alt="관상 로고" style={{ height: '40px', opacity: 0.3}} />
-        </Header>
-        
         <CardWrapper 
           ref={cardRef} 
           isFlipped={isFlipped} 
@@ -617,6 +634,9 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
           onClick={animationComplete ? handleCardFlip : undefined}
         >
           <GradientOverlay color={gradientColor} />
+          <CardLogo isVisible={animationState.logoVisible}>
+            <img src={`${process.env.PUBLIC_URL}/images/icon/logo-white.png`} alt="관상 로고" style={{ height: '40px', opacity: 0.3}} />
+          </CardLogo>
           <CardFront isFlipped={isFlipped} id="card-front">
             {(!isFlipped || showBackContent) && (
               <>
@@ -625,7 +645,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
                     <FaceImage src={`${process.env.PUBLIC_URL}/images/result_face.png`} alt="Face Analysis" />
                     
                     {/* 상단 측정 결과 */}
-                    <DataItem top="20%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
+                    <DataItem top="12%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>얼굴 너비-높이 비율</DataLabel>
                       <DataValue screenSize={screenSize}>{(result.faceRatio * 0.4 + 0.5).toFixed(2)}</DataValue>
                     </DataItem>
@@ -643,7 +663,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
                     </DataItem>
                     
                     {/* 얼굴 대칭성 */}
-                    <DataItem top="25%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
+                    <DataItem top="20%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>얼굴 대칭성</DataLabel>
                       <DataValue screenSize={screenSize}>{(result.symmetryScore * 100).toFixed(0)}%</DataValue>
                     </DataItem>
@@ -661,13 +681,13 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
                     </DataItem>
                     
                     {/* 눈 사이 거리 */}
-                    <DataItem top="30%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
+                    <DataItem top="27%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>눈 사이 거리</DataLabel>
                       <DataValue screenSize={screenSize}>{result.eyeDistanceRatio.toFixed(2)}</DataValue>
                     </DataItem>
                     
                     {/* 코 길이 */}
-                    <DataItem top="35%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
+                    <DataItem top="33%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>코 길이</DataLabel>
                       <DataValue screenSize={screenSize}>{result.noseLength.toFixed(2)}</DataValue>
                     </DataItem>
