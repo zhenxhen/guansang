@@ -1,6 +1,13 @@
+/// <reference types="@types/showdown" />
+
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import styled, { createGlobalStyle, css, keyframes } from 'styled-components';
 import html2canvas from 'html2canvas';
+import { getAIResult } from '../utils/AI_result';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import showdown from 'showdown';
+import { getRandomTraitImage, isValidTrait } from '../utils/image_card';
 
 // 전역 스타일 설정
 const GlobalStyle = createGlobalStyle`
@@ -14,14 +21,8 @@ const GlobalStyle = createGlobalStyle`
     margin: 0;
     padding: 0;
     overflow: hidden;
-    background-color: #000;
+    background-color: #fff;
     perspective: 1000px;
-  }
-
-  @media (min-width: 480px) {
-    body {
-      background-color: #fff;
-    }
   }
 `;
 
@@ -44,6 +45,110 @@ const CaptureStyles = createGlobalStyle<{ forCapture: boolean }>`
       background-color: #000;
     }
   `}
+`;
+
+// CSS 스타일 개선
+const MarkdownStyles = createGlobalStyle`
+  .percent-graph {
+    margin: 0px 0;
+    width: 100%;
+  }
+
+  .graph-layout {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+  }
+  
+  .graph-left-item,
+  .graph-right-item {
+    flex: 0 0 15%; /* 고정 너비로 변경 */
+    font-size: 16px;
+    font-weight: bold;
+    color: #797979;
+    text-align: center;
+    padding: 0 0px;
+  }
+  
+  .graph-middle {
+    flex: 0 0 65%; /* 중앙 그래프의 너비 설정 */
+  }
+  
+  .graph-container {
+    width: 100%;
+    height: 17px;
+    padding: 0px;
+    // background-color: #f0f0f0;
+    border-radius: 20px;
+    margin: 0px 0;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 1px 5px rgba(0, 0, 0, 0.1);
+  }
+
+  .graph-bar {
+    height: 100%;
+    background: linear-gradient(to right, #888, #555);
+    border-radius: 20px;
+    transition: width 0.8s ease-in-out;
+  }
+
+  .graph-label {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.37);
+  }
+
+  /* 마크다운 컨텐츠 스타일 유지 */
+  .markdown-content {
+    line-height: 1.8;
+    font-size: 14px;
+    color: #797979;
+    text-align: left;
+  }
+  
+  .markdown-content h1, .markdown-content h2, .markdown-content h3 {
+    font-weight: 700;
+    margin: 15px 0 15px;
+    line-height: 1.8;
+  }
+  
+  .markdown-content h1 {
+    font-size: 14px;
+    color: #797979;
+
+    
+  }
+  
+  .markdown-content h2 {
+    font-size: 14px;
+    margin: 40px 0 40px;
+    text-align: left;
+  }
+  
+  .markdown-content h3 {
+    font-size: 14px;
+    color: #797979;
+  }
+  
+  .markdown-content p {
+    font-size: 14px;
+    margin: 0 0 40px;
+    color: #797979;
+    text-align: left;
+  }
+  
+  .markdown-content strong {
+    font-size: 16px;
+    font-weight: 700;
+    color: #555;
+  }
 `;
 
 // 화면 크기에 따른 스타일을 정의하는 미디어 쿼리
@@ -131,41 +236,25 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
-  width: 100vw;
-  min-height: 100vh;
+  justify-content: center;
+  width: 100%;
+  height: 100vh;
   min-height: -webkit-fill-available; // iOS Safari를 위한 설정
   background-color: #fff;
   margin: 0;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: static;
   overflow: auto;
   box-sizing: border-box;
-  padding: 30px 15px;
+  padding: 50px 0;
   padding-bottom: calc(env(safe-area-inset-bottom) + 30px); // iOS Safari 하단 영역 고려
   perspective: 1000px;
-
-  @media (min-width: 480px) {
-    position: static;
-    width: 100%;
-    height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: auto;
-    padding: 50px 0;
-    background-color: #fff;
-  }
 `;
 
 const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean }>`
   width: 90%;
   max-width: 380px;
-  height: calc(90vh - 60px);
+  height: calc(100% - 100px);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -173,7 +262,7 @@ const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean }>`
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
   background-color: transparent;
   margin: auto;
-  overflow: hidden;
+  overflow: scroll;
   transition: transform 0.8s, opacity 0.6s ease;
   transform-style: preserve-3d;
   transform: ${props => props.isFlipped 
@@ -198,17 +287,6 @@ const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean }>`
     transition: opacity 0.4s ease;
   }
 
-  @media (min-width: 480px) {
-    width: 480px;
-    height: 800px;
-    border-radius: 20px;
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
-    background-color: transparent;
-    margin: auto;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-  }
 `;
 
 const GradientOverlay = styled.div<{ color: string }>`
@@ -242,14 +320,14 @@ const CardBack = styled.div<{ isFlipped: boolean }>`
   position: absolute;
   width: 100%;
   height: 100%;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
+  // backface-visibility: hidden;
+  // -webkit-backface-visibility: hidden;
   transform: rotateY(180deg) translateZ(0);
   background-color: transparent;
   border-radius: 20px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   padding: 20px;
   color: #9F9F9F;
@@ -258,30 +336,159 @@ const CardBack = styled.div<{ isFlipped: boolean }>`
   class-name: card-back;
   z-index: 20;
   transform-style: preserve-3d;
+  overflow-y: auto ;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+  &::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
 `;
 
 const CardBackContent = styled.div`
   text-align: center;
-  max-width: 80%;
+  max-width: 100%;
   width: 100%;
   z-index: 25;
   transform: scaleX(-1);
+  margin-top: 0px;
+`;
+
+const HighestTraitTitle = styled.h1`
+  font-size: 24px;
+  font-weight: 700;
+  color: #555;
+  margin-bottom: 30px;
+  transform: scaleX(-1);
+  text-align: center;
+`;
+
+const TraitImage = styled.img`
+  width: 100%;
+  height: 450px;
+  object-fit: cover;
+  margin: 0 auto 30px;
+  transform: scaleX(-1);
+  display: block;
+  border-radius: 10px;
+  border: 0.5px solid #fff;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, .1);
+`;
+
+const TraitTitle = styled.div`
+  position: absolute;
+  bottom: 5%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: #000;
+  // text-shadow: 0px 0px 5px rgba(0, 0, 0, 1);
+  font-size: 18px;
+  font-weight: 400;
+  z-index: 25;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  transform: scaleX(-1);
+`;
+
+const ImageContainer = styled.div`
+  position: relative;
+  width: 100%;
+  margin-bottom: 30px;
 `;
 
 const CardBackTitle = styled.h2`
-  font-size: 20px;
+  // font-size: 20px;
   margin-bottom: 20px;
   font-weight: 700;
   color: #797979;
   transform: scaleX(-1);
 `;
 
-const CardBackDescription = styled.p`
-  font-size: 14px;
-  line-height: 1.5;
+const CardBackDescription = styled.div`
+  line-height: 1.8;
   margin-bottom: 20px;
-  color: #797979;
   transform: scaleX(-1);
+  padding: 0 15px;
+  
+  /* 마크다운 스타일 */
+  & .markdown-content {
+    line-height: 1.8;
+  }
+  
+  & .markdown-content h1, 
+  & .markdown-content h2, 
+  & .markdown-content h3 {
+    font-weight: 700;
+    margin: 15px 0 15px;
+    line-height: 1.8;
+  }
+  
+  & .markdown-content h1 {
+    font-size: 14px;
+    color: #797979;
+    text-align: center;
+  }
+  
+  & .markdown-content h2 {
+    font-size: 14px;
+    margin: 40px 0 40px;
+    text-align: center;
+  }
+  
+  & .markdown-content h3 {
+    font-size: 14px;
+    color: #797979;
+  }
+  
+  & .markdown-content p {
+    font-size: 14px;
+    margin: 0 0 40px;
+    color: #797979;
+    text-align: left;
+  }
+  
+  & .markdown-content strong {
+    font-size: 16px;
+    font-weight: 700;
+    color: #555;
+  }
+  
+  & .markdown-content em {
+    font-style: normal;
+    font-size: 16px;
+    color: #797979;
+    font-weight: 700;
+  }
+  
+  & .markdown-content ul, 
+  & .markdown-content ol {
+    padding-left: 20px;
+    margin: 10px 0;
+  }
+  
+  & .markdown-content li {
+    margin-bottom: 5px;
+  }
+  
+  & .markdown-content blockquote {
+    padding-left: 10px;
+    border-left: 3px solid #aaa;
+    color: #888;
+    margin: 10px 0;
+  }
+  
+  & .markdown-content code {
+    background-color: #f0f0f0;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+    font-size: 13px;
+  }
+  
+  & .markdown-content hr {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 15px 0;
+  }
 `;
 
 const FullScreenCard = styled.div`
@@ -456,6 +663,121 @@ const CardLogo = styled.div<{ isVisible: boolean }>`
   transition: opacity 0.6s ease, transform 0.6s ease;
 `;
 
+const MarkdownTable = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  margin: 15px 0;
+  font-size: 12px;
+`;
+
+const MarkdownTableHeader = styled.th`
+  background-color: rgba(0, 0, 0, 0.05);
+  color: #666;
+  font-weight: 700;
+  padding: 8px 5px;
+  text-align: left;
+  border-bottom: 1px solid #ddd;
+`;
+
+const MarkdownTableCell = styled.td`
+  padding: 8px 5px;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+`;
+
+const MarkdownTableRow = styled.tr`
+  &:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+  
+  &:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+  }
+`;
+
+// 퍼센트 막대 그래프 스타일 개선
+const ProgressBarContainer = styled.div`
+  width: 100%;
+  height: 22px;
+  background-color: #f0f0f0;
+  border-radius: 11px;
+  margin: 8px 0 25px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+`;
+
+const ProgressBar = styled.div<{ percent: number }>`
+  height: 100%;
+  width: ${props => `${props.percent}%`};
+  background: linear-gradient(to right, #888, #555);
+  border-radius: 11px;
+  transition: width 0.8s ease-in-out;
+`;
+
+const PercentLabel = styled.div`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #555;
+  font-size: 12px;
+  font-weight: 700;
+  text-shadow: 0px 0px 3px rgba(255, 255, 255, 0.9);
+`;
+
+// 퍼센트 그래프 컴포넌트 제목 스타일
+const GraphTitle = styled.div`
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 10px;
+  color: #797979;
+  transform: scaleX(-1); // CardBackContent와 동일하게 변환 적용
+`;
+
+// Showdown 컨버터 설정
+const converter = new showdown.Converter({
+  tables: true,
+  tasklists: true,
+  strikethrough: true,
+  simplifiedAutoLink: true,
+  parseImgDimensions: true,
+  simpleLineBreaks: true
+});
+
+// 퍼센트 그래프 렌더링 컴포넌트
+const PercentGraph: React.FC<{ text: string }> = ({ text }) => {
+  console.log('텍스트 입력:', text);
+  
+  // 매우 간단한 정규식: 한글로 시작하고 숫자%가 포함되고 한글로 끝나는 패턴
+  // 모든 대시 문자를 처리하고 공백 유무에 상관없이 매칭
+  // .이 줄바꿈을 포함하지 않도록 s 플래그 제외
+  const simplePattern = /([가-힣]+).*?(\d+)%.*?([가-힣]+)/;
+  const match = text.match(simplePattern);
+  
+  console.log('정규식 매치 결과:', match);
+  
+  if (match) {
+    const [, leftText, percentText, rightText] = match;
+    const percent = parseInt(percentText, 10);
+    
+    console.log('추출된 데이터:', { leftText, percent, rightText });
+    
+    return (
+      <div style={{ width: '100%' }}>
+        <GraphTitle>{`${leftText} — ${rightText}`}</GraphTitle>
+        <ProgressBarContainer>
+          <ProgressBar percent={percent} />
+          <PercentLabel>{percent}%</PercentLabel>
+        </ProgressBarContainer>
+      </div>
+    );
+  }
+  
+  // 패턴이 없으면 일반 텍스트로 렌더링
+  return <p>{text}</p>;
+};
+
 // 디바운스 함수 추가
 function debounce(func: Function, wait: number) {
   let timeout: ReturnType<typeof setTimeout>;
@@ -479,6 +801,19 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
   const [showBackContent, setShowBackContent] = useState(false);
   const [contentTransitioning, setContentTransitioning] = useState(false);
   
+  // AI 결과 상태 추가
+  const [aiResult, setAiResult] = useState<{title: string; description: string}>({
+    title: "당신의 관상",
+    description: "AI가 분석 중입니다..."
+  });
+
+  // 전처리된 마크다운 컨텐츠를 담을 상태 추가
+  const [processedDescription, setProcessedDescription] = useState<string>("");
+  
+  // 가장 높은 퍼센트를 가진 특성을 저장할 상태
+  const [highestTrait, setHighestTrait] = useState<{leftText: string; rightText: string; percent: number} | null>(null);
+  const [traitImage, setTraitImage] = useState<string>('');
+  
   // 랜딩 애니메이션 상태
   const [animationState, setAnimationState] = useState({
     logoVisible: false,
@@ -488,6 +823,86 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
     footerVisible: false
   });
   const [animationComplete, setAnimationComplete] = useState(false);
+  
+  // AI 분석 결과 가져오기
+  useEffect(() => {
+    if (result) {
+      const fetchAIResult = async () => {
+        try {
+          const aiData = await getAIResult({
+            ...result,
+            userName: userName
+          });
+          setAiResult(aiData);
+        } catch (error) {
+          console.error("AI 결과 가져오기 오류:", error);
+          setAiResult({
+            title: "분석 오류",
+            description: "분석 과정에서 오류가 발생했습니다. 다시 시도해주세요."
+          });
+        }
+      };
+      
+      fetchAIResult();
+    }
+  }, [result, userName]);
+  
+  // AI 결과가 업데이트되면 전처리 수행
+  useEffect(() => {
+    if (aiResult.description) {
+      try {
+        // 먼저 마크다운을 HTML로 변환
+        let htmlContent = converter.makeHtml(aiResult.description);
+        
+        // 퍼센트 패턴을 찾아서 저장할 배열
+        let percentPatterns: {leftText: string; rightText: string; percent: number}[] = [];
+        
+        // 정규식 패턴 - '판단 - 85% - 유연' 같은 형식 찾기
+        htmlContent = htmlContent.replace(
+          /([가-힣]+)\s*[-—]\s*(\d+)%\s*[-—]\s*([가-힣]+)/g,
+          (match, leftText, percentStr, rightText) => {
+            const percent = parseInt(percentStr, 10);
+            console.log('퍼센트 그래프 변환:', { match, leftText, percent, rightText });
+            
+            // 퍼센트 패턴 저장
+            percentPatterns.push({ leftText, rightText, percent });
+            
+            return `<div class="percent-graph">
+              <div class="graph-layout">
+                <div class="graph-left-item">${rightText}</div>
+                <div class="graph-middle">
+                  <div class="graph-container">
+                    <div class="graph-bar" style="width: ${percent}%;"></div>
+                    <div class="graph-label">${percent}%</div>
+                  </div>
+                </div>
+                <div class="graph-right-item">${leftText}</div>
+              </div>
+            </div>`;
+          }
+        );
+        
+        // 가장 높은 퍼센트 값을 가진 항목 찾기
+        if (percentPatterns.length > 0) {
+          const highest = percentPatterns.reduce((prev, current) => 
+            (prev.percent > current.percent) ? prev : current
+          );
+          setHighestTrait(highest);
+          
+          // 특성에 해당하는 이미지 설정
+          if (isValidTrait(highest.leftText)) {
+            setTraitImage(getRandomTraitImage(highest.leftText));
+          }
+        }
+        
+        setProcessedDescription(htmlContent);
+        console.log('전처리 완료');
+      } catch (error) {
+        console.error('처리 중 오류:', error);
+        setProcessedDescription(converter.makeHtml(aiResult.description));
+      }
+    }
+  }, [aiResult.description]);
   
   // 컴포넌트 마운트 시 랜덤 색상 선택
   useEffect(() => {
@@ -555,8 +970,8 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
     
     // DOM 업데이트가 완료된 후 캡처 실행
     setTimeout(() => {
-      // PC 버전에서는 카드만 캡처하고, 모바일에서는 전체 화면 캡처
-      const targetElement = window.innerWidth >= 480 ? cardRef.current : containerRef.current;
+      // 카드만 캡처
+      const targetElement = cardRef.current;
       
       if (targetElement) {
         html2canvas(targetElement, {
@@ -621,6 +1036,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
     <>
       <GlobalStyle />
       <CaptureStyles forCapture={forCapture} />
+      <MarkdownStyles />
       <Container ref={containerRef}>
         <CardWrapper 
           ref={cardRef} 
@@ -724,9 +1140,12 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
                     </DataItem>
                   </FaceContainer>
                 </FullScreenCard>
-                
                 <InterpretText isVisible={animationState.titleVisible}>
-                  AI_title
+                  <ReactMarkdown components={{
+                    h1: ({node, ...props}) => <span className="interpret-title" {...props} />
+                  }}>
+                    {aiResult.title}
+                  </ReactMarkdown>
                 </InterpretText>
               </>
             )}
@@ -734,9 +1153,34 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
           
           <CardBack isFlipped={isFlipped} id="card-back">
             <CardBackContent>
-              <CardBackTitle>관상 분석 결과</CardBackTitle>
+              {highestTrait && (
+                <>
+                  {traitImage && (
+                    <ImageContainer>
+                      <TraitTitle>
+                        <ReactMarkdown components={{
+                          h1: ({node, ...props}) => <span className="interpret-title" {...props} />
+                        }}>
+                        {aiResult.title}
+                        </ReactMarkdown>
+                      </TraitTitle>
+                      <TraitImage src={traitImage} alt={highestTrait.leftText} />
+                    </ImageContainer>
+                  )}
+                  {!traitImage && (
+                    <HighestTraitTitle>
+                      {highestTrait.leftText}
+                    </HighestTraitTitle>
+                  )}
+                </>
+              )}
               <CardBackDescription>
-                AI_description
+                <div 
+                  className="markdown-content" 
+                  dangerouslySetInnerHTML={{ 
+                    __html: processedDescription || aiResult.description
+                  }} 
+                />
               </CardBackDescription>
             </CardBackContent>
           </CardBack>

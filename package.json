@@ -20,9 +20,13 @@
     "@types/react-dom": "^19.1.2",
     "@types/styled-components": "^5.1.34",
     "html2canvas": "^1.4.1",
+    "openai": "^4.97.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0",
     "react-scripts": "5.0.1",
+    "remark-gfm": "^4.0.1",
+    "showdown": "^2.1.0",
     "styled-components": "^6.1.17",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
@@ -54,6 +58,7 @@
     ]
   },
   "devDependencies": {
+    "@types/showdown": "^2.0.6",
     "gh-pages": "^6.3.0"
   }
 }
