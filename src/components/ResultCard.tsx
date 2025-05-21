@@ -238,7 +238,6 @@ const Container = styled.div`
   align-items: center;
   justify-content: flex-start;
   width: 100vw;
-  min-height: calc(100vh);
   max-height: calc(100vh);
   background: #fff;
   margin: 0;
