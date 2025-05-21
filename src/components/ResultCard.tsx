@@ -243,13 +243,13 @@ const Container = styled.div`
   margin: 0;
   padding: 0;
   overflow: hidden;
+  box-sizing: border-box;
 `;
 
 const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean }>`
   width: 90%;
-  height: 100%;
-  max-width: 430px;
-  max-height: 932px;
+  max-width: 480px;
+  aspect-ratio: 0.46;
   margin: 20px auto;
   background: #fff;
   border-radius: 20px;
@@ -788,6 +788,14 @@ function debounce(func: Function, wait: number) {
   };
 }
 
+// 핵심 속성 안전하게 처리하는 유틸 함수
+const safeToFixed = (value: any, digits: number = 2) => {
+  if (value === undefined || value === null || isNaN(value)) {
+    return '0';
+  }
+  return Number(value).toFixed(digits);
+};
+
 const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userName = '진원' }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -1055,85 +1063,85 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
                     {/* 상단 측정 결과 */}
                     <DataItem top="12%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>얼굴 너비-높이 비율</DataLabel>
-                      <DataValue screenSize={screenSize}>{(result.faceRatio * 0.4 + 0.5).toFixed(2)}</DataValue>
+                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.faceRatio * 0.4 + 0.5)}</DataValue>
                     </DataItem>
                     
                     {/* 왼쪽 상단 */}
                     <DataItem top="33%" left="15%" textAlign="left" screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>왼쪽 눈 색상</DataLabel>
-                      <ColorCircle color={result.eyeIrisColor_L || '#130603'} style={{ margin: '0 auto' }} screenSize={screenSize} />
+                      <ColorCircle color={result?.eyeIrisColor_L || '#130603'} style={{ margin: '0 auto' }} screenSize={screenSize} />
                     </DataItem>
                     
                     {/* 오른쪽 상단 */}
                     <DataItem top="33%" right="15%" textAlign="right" screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>오른쪽 눈 색상</DataLabel>
-                      <ColorCircle color={result.eyeIrisColor_R || '#190705'} style={{ margin: '0 auto' }} screenSize={screenSize} />
+                      <ColorCircle color={result?.eyeIrisColor_R || '#190705'} style={{ margin: '0 auto' }} screenSize={screenSize} />
                     </DataItem>
                     
                     {/* 얼굴 대칭성 */}
                     <DataItem top="20%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>얼굴 대칭성</DataLabel>
-                      <DataValue screenSize={screenSize}>{(result.symmetryScore * 100).toFixed(0)}%</DataValue>
+                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.symmetryScore * 100, 0)}%</DataValue>
                     </DataItem>
                     
                     {/* 왼쪽 중앙 */}
                     <DataItem top="27%" left="12%" textAlign="left" screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>왼쪽 눈 기울기</DataLabel>
-                      <DataValue screenSize={screenSize}>{result.eyeAngleDeg_L.toFixed(1)}°</DataValue>
+                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.eyeAngleDeg_L, 1)}°</DataValue>
                     </DataItem>
                     
                     {/* 오른쪽 중앙 */}
                     <DataItem top="27%" right="12%" textAlign="right" screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>오른쪽 눈 기울기</DataLabel>
-                      <DataValue screenSize={screenSize}>{result.eyeAngleDeg_R.toFixed(1)}°</DataValue>
+                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.eyeAngleDeg_R, 1)}°</DataValue>
                     </DataItem>
                     
                     {/* 눈 사이 거리 */}
                     <DataItem top="27%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>눈 사이 거리</DataLabel>
-                      <DataValue screenSize={screenSize}>{result.eyeDistanceRatio.toFixed(2)}</DataValue>
+                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.eyeDistanceRatio)}</DataValue>
                     </DataItem>
                     
                     {/* 코 길이 */}
                     <DataItem top="33%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>코 길이</DataLabel>
-                      <DataValue screenSize={screenSize}>{result.noseLength.toFixed(2)}</DataValue>
+                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.noseLength)}</DataValue>
                     </DataItem>
                     
                     {/* 코 높이 */}
                     <DataItem top="40%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>코 높이</DataLabel>
-                      <DataValue screenSize={screenSize}>{result.noseHeight.toFixed(2)}</DataValue>
+                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.noseHeight)}</DataValue>
                     </DataItem>
                     
                     {/* 왼쪽 콧망울 */}
                     <DataItem top="40%" left="20%" textAlign="left" screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>왼쪽 콧망울 크기</DataLabel>
-                      <DataValue screenSize={screenSize}>{result.nostrilSize_L.toFixed(2)}</DataValue>
+                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.nostrilSize_L)}</DataValue>
                     </DataItem>
                     
                     {/* 오른쪽 콧망울 */}
                     <DataItem top="40%" right="20%" textAlign="right" screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>오른쪽 콧망울 크기</DataLabel>
-                      <DataValue screenSize={screenSize}>{result.nostrilSize_R.toFixed(2)}</DataValue>
+                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.nostrilSize_R)}</DataValue>
                     </DataItem>
                     
                     {/* 아랫입술 두께 */}
                     <DataItem top="50%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>아랫입술 두께</DataLabel>
-                      <DataValue screenSize={screenSize}>{result.lowerLipThickness.toFixed(2)}</DataValue>
+                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.lowerLipThickness)}</DataValue>
                     </DataItem>
                     
                     {/* 피부 색상 */}
                     <DataItem bottom="40%" left="25%" textAlign="center" screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>피부 색상</DataLabel>
-                      <ColorCircle color={result.skinToneColor || '#c6b7b0'} style={{ margin: '0 auto' }} screenSize={screenSize} />
+                      <ColorCircle color={result?.skinToneColor || '#c6b7b0'} style={{ margin: '0 auto' }} screenSize={screenSize} />
                     </DataItem>
                     
                     {/* 다크서클 색상 */}
                     <DataItem bottom="40%" right="25%" textAlign="center" screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>다크서클 색상</DataLabel>
-                      <ColorCircle color={result.eyeDarkCircleColor || '#807673'} style={{ margin: '0 auto' }} screenSize={screenSize} />
+                      <ColorCircle color={result?.eyeDarkCircleColor || '#807673'} style={{ margin: '0 auto' }} screenSize={screenSize} />
                     </DataItem>
                   </FaceContainer>
                 </FullScreenCard>

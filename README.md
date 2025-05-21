@@ -3,7 +3,7 @@ test2
 
 # 관상 앱 (Guansang App)
 
-얼굴 특징을 분석하고 ㄴㄴ시각화하는 웹 애플리케이션입니다. MediaPipe의 Face Landmark 기술을 활용하여 실시간으로 얼굴의 비율, 대칭성, 눈, 코, 입 등의 특징을 분석합니다.
+얼굴 특징을 분석하고 시각화하는 웹 애플리케이션입니다. MediaPipe의 Face Landmark 기술을 활용하여 실시간으로 얼굴의 비율, 대칭성, 눈, 코, 입 등의 특징을 분석합니다.
 
 ## 주요 기능
 
@@ -20,6 +20,7 @@ test2
 - MediaPipe: 얼굴 랜드마크 인식 및 추적
 - Canvas API: 시각적 효과 및 그래픽 처리
 - 반응형 디자인: 다양한 화면 크기 지원
+- OpenAI API: 얼굴 분석 결과 기반 AI 해석
 
 ## 프로젝트 구조
 
@@ -54,6 +55,7 @@ src/
 
 - Node.js 14.x 이상
 - npm 또는 yarn
+- OpenAI API 키 (얼굴 분석 결과를 위해)
 
 ### 설치 및 실행
 
@@ -70,17 +72,34 @@ src/
    yarn
    ```
 
-3. 개발 서버 실행
+3. 환경 변수 설정
+   ```bash
+   # .env.example 파일을 .env 파일로 복사
+   cp .env.example .env
+   
+   # .env 파일을 편집하여 OpenAI API 키 입력
+   # REACT_APP_OPENAI_API_KEY=your_openai_api_key_here
+   ```
+
+4. 개발 서버 실행
    ```bash
    npm start
    # 또는
    yarn start
    ```
 
-4. 브라우저에서 앱 열기
+5. 브라우저에서 앱 열기
    ```
    http://localhost:3000
    ```
+
+## 환경 변수
+
+애플리케이션을 실행하기 위해 다음과 같은 환경 변수가 필요합니다:
+
+- `REACT_APP_OPENAI_API_KEY`: OpenAI API 키 (얼굴 분석 결과 생성에 사용)
+
+**주의**: API 키를 GitHub에 절대 커밋하지 마세요. 항상 .env 파일은 .gitignore에 포함되어 있는지 확인하세요.
 
 ## 빌드
 
@@ -99,6 +118,7 @@ yarn build
 3. 랜드마크 좌표를 기반으로 얼굴 특징을 계산합니다.
 4. 계산된 특징을 Canvas에 시각화하고 분석 결과를 표시합니다.
 5. 사용자는 실시간으로 얼굴 분석 결과를 확인할 수 있습니다.
+6. OpenAI API를 사용하여 얼굴 특징을 기반으로 한 분석 결과를 생성합니다.
 
 ## 주의사항
 
