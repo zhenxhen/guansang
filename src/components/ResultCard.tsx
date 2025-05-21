@@ -237,32 +237,27 @@ const Container = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 100%;
+  width: 100vw;
   height: 100vh;
-  min-height: -webkit-fill-available; // iOS Safari를 위한 설정
-  background-color: #fff;
+  background: #fff;
   margin: 0;
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-  position: static;
-  overflow: auto;
-  box-sizing: border-box;
-  padding: 50px 0;
-  padding-bottom: calc(env(safe-area-inset-bottom) + 30px); // iOS Safari 하단 영역 고려
-  perspective: 1000px;
+  padding: 0;
+  overflow: hidden;
 `;
 
 const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean }>`
   width: 90%;
-  max-width: 380px;
-  height: calc(100% - 100px);
-  display: flex;
-  flex-direction: column;
-  position: relative;
+  height: 100%;
+  max-width: 430px;
+  max-height: 932px;
+  margin: 20px auto;
+  background: #fff;
   border-radius: 20px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
-  background-color: transparent;
-  margin: auto;
-  overflow: scroll;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  flex-direction: column;
   transition: transform 0.8s, opacity 0.6s ease;
   transform-style: preserve-3d;
   transform: ${props => props.isFlipped 
@@ -272,7 +267,7 @@ const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean }>`
       : 'rotateY(0)'};
   opacity: ${props => props.isVisible ? 1 : 0};
   cursor: ${props => props.isVisible ? 'pointer' : 'default'};
-  perspective: 1000px;
+  perspective: 100px;
 
   &::before {
     content: '';
@@ -286,7 +281,6 @@ const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean }>`
     opacity: ${props => props.isFlipped ? 0 : 1};
     transition: opacity 0.4s ease;
   }
-
 `;
 
 const GradientOverlay = styled.div<{ color: string }>`
@@ -350,7 +344,7 @@ const CardBackContent = styled.div`
   width: 100%;
   z-index: 25;
   transform: scaleX(-1);
-  margin-top: 0px;
+  margin-top: 0;
 `;
 
 const HighestTraitTitle = styled.h1`
@@ -393,6 +387,8 @@ const ImageContainer = styled.div`
   position: relative;
   width: 100%;
   margin-bottom: 30px;
+  padding: 0;
+  background: transparent;
 `;
 
 const CardBackTitle = styled.h2`
@@ -575,7 +571,7 @@ const ColorCircle = styled.div<{ color: string, screenSize: 'extraSmall' | 'smal
 const ButtonsContainer = styled.div<{ isVisible: boolean }>`
   display: flex;
   gap: 16px;
-  margin: 20px auto;
+  margin-bottom: 10px;
   width: 100%;
   justify-content: center;
   z-index: 20;
@@ -590,6 +586,7 @@ const Button = styled.button`
   display: flex;
   align-items: center;
   justify-content: center;
+  margin: 0;
   padding: 0;
   background-color: rgba(210, 210, 210, 0.7);
   color: white;
