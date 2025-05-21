@@ -236,13 +236,14 @@ const Container = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100vw;
-  height: 100vh;
+  min-height: calc(100vh);
+  max-height: calc(100vh);
   background: #fff;
   margin: 0;
-  padding: 0;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   box-sizing: border-box;
 `;
 
@@ -250,7 +251,7 @@ const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean }>`
   width: 90%;
   max-width: 480px;
   aspect-ratio: 0.46;
-  margin: 20px auto;
+  margin: 20px auto 130px;
   background: #fff;
   border-radius: 20px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
@@ -345,6 +346,9 @@ const CardBackContent = styled.div`
   z-index: 25;
   transform: scaleX(-1);
   margin-top: 0;
+  opacity: 0;
+  transition: opacity 0.5s ease-in;
+  transition-delay: 0.3s;
 `;
 
 const HighestTraitTitle = styled.h1`
@@ -374,8 +378,8 @@ const TraitTitle = styled.div`
   left: 0;
   right: 0;
   text-align: center;
-  color: #000;
-  // text-shadow: 0px 0px 5px rgba(0, 0, 0, 1);
+  color: #636363;
+  text-shadow: 0px 0px 15px rgba(255, 255, 255, 1);
   font-size: 18px;
   font-weight: 400;
   z-index: 25;
@@ -571,14 +575,16 @@ const ColorCircle = styled.div<{ color: string, screenSize: 'extraSmall' | 'smal
 const ButtonsContainer = styled.div<{ isVisible: boolean }>`
   display: flex;
   gap: 16px;
-  margin-bottom: 10px;
   width: 100%;
   justify-content: center;
   z-index: 20;
   opacity: ${props => props.isVisible ? 1 : 0};
   transform: ${props => props.isVisible ? 'translateY(0)' : 'translateY(20px)'};
   transition: opacity 0.6s ease, transform 0.6s ease;
-  position: relative;
+  position: fixed;
+  bottom: 60px;
+  left: 0;
+  right: 0;
   padding-bottom: env(safe-area-inset-bottom); // iOS Safari 하단 영역 고려
 `;
 
@@ -638,14 +644,18 @@ const Footer = styled.div<{ isVisible?: boolean }>`
   opacity: ${props => props.isVisible ? 1 : 0};
   transform: ${props => props.isVisible ? 'translateY(0)' : 'translateY(20px)'};
   transition: opacity 0.6s ease, transform 0.6s ease;
-  position: relative;
-  padding-bottom: env(safe-area-inset-bottom); // iOS Safari 하단 영역 고려
+  position: fixed;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  padding-bottom: env(safe-area-inset-bottom);
 `;
 
 const Copyright = styled.div`
   color: #999;
   font-size: 9px;
   font-family: 'Pretendard', sans-serif;
+  background: transparent;
 `;
 
 const CardLogo = styled.div<{ isVisible: boolean }>`
@@ -1019,10 +1029,11 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
     if (!isFlipped) {
       setTimeout(() => {
         setIsFlipped(true);
+        setShowBackContent(false); // 뒷면으로 넘어갈 때 콘텐츠 일시적으로 숨김
         setTimeout(() => {
           setShowBackContent(true);
           setContentTransitioning(false);
-        }, 200);
+        }, 300);
       }, 300);
     } else {
       setTimeout(() => {
@@ -1157,7 +1168,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
           </CardFront>
           
           <CardBack isFlipped={isFlipped} id="card-back">
-            <CardBackContent>
+            <CardBackContent style={{ opacity: showBackContent ? 1 : 0 }}>
               {highestTrait && (
                 <>
                   {traitImage && (

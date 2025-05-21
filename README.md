@@ -61,7 +61,7 @@ src/
 
 1. 저장소 복제
    ```bash
-   git clone https://github.com/yourusername/guansang-app.git
+   git clone https://github.com/zhenxhen/guansang.git
    cd guansang-app
    ```
 
@@ -92,14 +92,6 @@ src/
    ```
    http://localhost:3000
    ```
-
-## 환경 변수
-
-애플리케이션을 실행하기 위해 다음과 같은 환경 변수가 필요합니다:
-
-- `REACT_APP_OPENAI_API_KEY`: OpenAI API 키 (얼굴 분석 결과 생성에 사용)
-
-**주의**: API 키를 GitHub에 절대 커밋하지 마세요. 항상 .env 파일은 .gitignore에 포함되어 있는지 확인하세요.
 
 ## 빌드
 
