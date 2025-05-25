@@ -30,11 +30,11 @@ const GlobalStyle = createGlobalStyle`
 const fadeInUp = keyframes`
   from {
     opacity: 0;
-    transform: translate3d(0, 20px, 0);
+    transform: translate3d(0, 50px, 0);
   }
   to {
     opacity: 1;
-    transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 50px, 0);
   }
 `;
 
@@ -246,7 +246,22 @@ const Container = styled.div`
   box-sizing: border-box;
 `;
 
-const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean }>`
+// 카드 흔들림 애니메이션 키프레임 추가
+const wiggleAnimation = keyframes`
+  0% { transform: rotateY(0deg); }
+  50% { transform: rotateY(20deg); }
+  100% { transform: rotateY(0deg); }
+`;
+
+// 흔들림 효과가 적용된 스타일
+const WiggleEffectStyle = createGlobalStyle<{ shouldWiggle: boolean }>`
+  .card-wrapper.wiggling {
+    animation: ${wiggleAnimation} 2s ease-in-out forwards;
+    animation-iteration-count: 1;
+  }
+`;
+
+const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean; isLoading?: boolean }>`
   width: 90%;
   max-width: 480px;
   aspect-ratio: 0.46;
@@ -258,7 +273,7 @@ const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean }>`
   position: relative;
   display: flex;
   flex-direction: column;
-  transition: transform 0.8s, opacity 0.6s ease;
+  transition: transform 1s ease;
   transform-style: preserve-3d;
   transform: ${props => props.isFlipped 
     ? 'rotateY(180deg)' 
@@ -266,7 +281,7 @@ const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean }>`
       ? 'rotateY(0)' 
       : 'rotateY(0)'};
   opacity: ${props => props.isVisible ? 1 : 0};
-  cursor: ${props => props.isVisible ? 'pointer' : 'default'};
+  cursor: ${props => (props.isVisible && !props.isLoading) ? 'pointer' : 'default'};
   perspective: 100px;
 
   &::before {
@@ -300,13 +315,14 @@ const CardFront = styled.div<{ isFlipped: boolean }>`
   position: absolute;
   width: 100%;
   height: 100%;
-  backface-visibility: hidden;
-  -webkit-backface-visibility: hidden;
-  transition: opacity 0.3s ease-in-out ${props => props.isFlipped ? '0s' : '0.3s'};
+  // backface-visibility: hidden;
+  // -webkit-backface-visibility: hidden;
+  transition: opacity 0.3s ease-in-out ${props => props.isFlipped ? 
+  '0s' : '0.3s'};
   opacity: ${props => props.isFlipped ? 0 : 1};
   transform: translateZ(0);
   class-name: card-front;
-  background-color: #000;
+  background-color: transparent;
   border-radius: 20px;
 `;
 
@@ -324,13 +340,13 @@ const CardBack = styled.div<{ isFlipped: boolean }>`
   justify-content: flex-start;
   align-items: center;
   padding: 20px;
-  color: #9F9F9F;
-  transition: opacity 0.3s ease-in-out;
+  transition: all 0.3s ease-in-out;
+  transition-delay: .1s;
   opacity: ${props => props.isFlipped ? 1 : 0};
   class-name: card-back;
   z-index: 20;
   transform-style: preserve-3d;
-  overflow-y: auto ;
+  overflow-y: auto;
   scrollbar-width: none; /* Firefox */
   -ms-overflow-style: none; /* IE and Edge */
   &::-webkit-scrollbar {
@@ -346,8 +362,8 @@ const CardBackContent = styled.div`
   transform: scaleX(-1);
   margin-top: 0;
   opacity: 0;
-  transition: opacity 0.5s ease-in;
-  transition-delay: 0.3s;
+    transition: all 0.3s ease-in-out;
+  // transition-delay: 0.3s;
 `;
 
 const HighestTraitTitle = styled.h1`
@@ -504,6 +520,7 @@ const FullScreenCard = styled.div`
   width: 100%;
   height: 100%;
   border-radius: 20px;
+  background-color: #1a1a1a; /* 어두운 회색으로 변경 - 배경 이미지와 자연스럽게 어울리는 색상 */
 `;
 
 const FaceContainer = styled.div`
@@ -525,6 +542,21 @@ const FaceImage = styled.img`
   pointer-events: none;
   z-index: 1;
   opacity: 1;
+    transform: scaleX(-1);
+`;
+
+const LoadingVideo = styled.video`
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 1;
+  transition: opacity 0.5s ease-in-out;
+  transform: scaleX(-1); /* 영상 좌우반전 */
 `;
 
 // 각 항목들의 배치를 위한 스타일 컴포넌트
@@ -623,9 +655,9 @@ const InterpretText = styled.div<{ isVisible: boolean }>`
   width: 100%;
   max-width: 280px;
   text-align: center;
-  color: #797979;
-  font-size: 20px;
-  font-weight: 600;
+  color:rgba(121, 121, 121, 0.58);
+  font-size: 16px;
+  font-weight: 800;
   z-index: 25;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
   opacity: ${props => props.isVisible ? 1 : 0};
@@ -814,10 +846,12 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
   const [isFlipped, setIsFlipped] = useState(false);
   const [showBackContent, setShowBackContent] = useState(false);
   const [contentTransitioning, setContentTransitioning] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [shouldWiggle, setShouldWiggle] = useState(false);
   
   // AI 결과 상태 추가
   const [aiResult, setAiResult] = useState<{title: string; description: string}>({
-    title: "당신의 관상",
+    title: "AI가 분석중입니다",
     description: "AI가 분석 중입니다..."
   });
 
@@ -841,6 +875,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
   // AI 분석 결과 가져오기
   useEffect(() => {
     if (result) {
+      setIsLoading(true);
       const fetchAIResult = async () => {
         try {
           const aiData = await getAIResult({
@@ -848,15 +883,30 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
             userName: userName
           });
           setAiResult(aiData);
+          setIsLoading(false);
+          
+          // 로딩이 완료되면 한 번만 카드 흔들림 애니메이션 실행
+          setTimeout(() => {
+            // 한 번만 실행되도록 임시 변수로 애니메이션 제어
+            setShouldWiggle(true);
+            
+            // 애니메이션 완료 후 리셋 (애니메이션 지속 시간과 일치)
+            setTimeout(() => {
+              setShouldWiggle(false);
+            }, 2000);
+          }, 500);
+          
         } catch (error) {
           console.error("AI 결과 가져오기 오류:", error);
           setAiResult({
             title: "분석 오류",
             description: "분석 과정에서 오류가 발생했습니다. 다시 시도해주세요."
           });
+          setIsLoading(false);
         }
       };
       
+      // fetchAIResult 함수를 딱 한 번만 호출
       fetchAIResult();
     }
   }, [result, userName]);
@@ -1019,29 +1069,28 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
     }, 100); // DOM 업데이트를 위한 짧은 지연
   };
   
-  // 카드 뒤집기 핸들러
+  // 애니메이션 중에는 클릭을 비활성화하는 카드 플립 핸들러
   const handleCardFlip = () => {
-    if (contentTransitioning || !animationComplete) return;
+    if (contentTransitioning || !animationComplete || shouldWiggle) return;
     
     setContentTransitioning(true);
     
     if (!isFlipped) {
+      // 앞면에서 뒷면으로 전환
+      setShowBackContent(false); // 먼저 뒷면 콘텐츠 숨김
+      setIsFlipped(true); // 그 다음 카드 뒤집기
+      
+      // 카드가 뒤집히고 나서 콘텐츠 표시
       setTimeout(() => {
-        setIsFlipped(true);
-        setShowBackContent(false); // 뒷면으로 넘어갈 때 콘텐츠 일시적으로 숨김
-        setTimeout(() => {
-          setShowBackContent(true);
-          setContentTransitioning(false);
-        }, 300);
-      }, 300);
+        setShowBackContent(true);
+        setContentTransitioning(false);
+      }, 600);
     } else {
+      // 뒷면에서 앞면으로 전환
+      setIsFlipped(false);
       setTimeout(() => {
-        setIsFlipped(false);
-        setTimeout(() => {
-          setShowBackContent(true);
-          setContentTransitioning(false);
-        }, 200);
-      }, 300);
+        setContentTransitioning(false);
+      }, 500);
     }
   };
   
@@ -1052,23 +1101,38 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
       <GlobalStyle />
       <CaptureStyles forCapture={forCapture} />
       <MarkdownStyles />
+      <WiggleEffectStyle shouldWiggle={shouldWiggle} />
       <Container ref={containerRef}>
         <CardWrapper 
           ref={cardRef} 
           isFlipped={isFlipped} 
           isVisible={animationState.cardVisible}
-          onClick={animationComplete ? handleCardFlip : undefined}
+          isLoading={isLoading}
+          className={`card-wrapper ${shouldWiggle ? 'wiggling' : ''}`}
+          onClick={animationComplete && !isLoading ? handleCardFlip : undefined}
         >
           <GradientOverlay color={gradientColor} />
           <CardLogo isVisible={animationState.logoVisible}>
             <img src={`${process.env.PUBLIC_URL}/images/icon/logo-white.png`} alt="관상 로고" style={{ height: '40px', opacity: 0.3}} />
           </CardLogo>
           <CardFront isFlipped={isFlipped} id="card-front">
-            {(!isFlipped || showBackContent) && (
+            {!isFlipped && (
               <>
                 <FullScreenCard>
                   <FaceContainer>
+                    {/* 배경 이미지를 항상 표시 */}
                     <FaceImage src={`${process.env.PUBLIC_URL}/images/result_face.png`} alt="Face Analysis" />
+                    
+                    {/* 로딩 영상은 항상 표시하되, 로딩 완료 시 투명하게 처리 */}
+                    <LoadingVideo 
+                      autoPlay 
+                      loop 
+                      muted 
+                      playsInline
+                      style={{ opacity: isLoading ? 1 : 0 }}
+                    >
+                      <source src={`${process.env.PUBLIC_URL}/videos/loading.mp4`} type="video/mp4" />
+                    </LoadingVideo>
                     
                     {/* 상단 측정 결과 */}
                     <DataItem top="12%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
@@ -1159,7 +1223,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
                   <ReactMarkdown components={{
                     h1: ({node, ...props}) => <span className="interpret-title" {...props} />
                   }}>
-                    {aiResult.title}
+                    {isLoading ? "AI가 분석중입니다" : "카드를 넘겨 분석 내용을 확인하세요"}
                   </ReactMarkdown>
                 </InterpretText>
               </>
@@ -1205,9 +1269,11 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
           <Button onClick={onRetake}>
             <img src={`${process.env.PUBLIC_URL}/images/icon/retake.png`} alt="다시 찍기" />
           </Button>
-          <Button onClick={animationComplete ? handleCardFlip : undefined}>
-            <img src={`${process.env.PUBLIC_URL}/images/icon/flip.png`} alt="카드 뒤집기" />
-          </Button>
+          {!isLoading && (
+            <Button onClick={animationComplete ? handleCardFlip : undefined}>
+              <img src={`${process.env.PUBLIC_URL}/images/icon/flip.png`} alt="카드 뒤집기" />
+            </Button>
+          )}
         </ButtonsContainer>
 
         <Footer isVisible={animationState.footerVisible}>
