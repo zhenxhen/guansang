@@ -589,11 +589,82 @@ const DataLabel = styled.span<{ screenSize: 'extraSmall' | 'small' | 'medium' | 
   white-space: nowrap;
 `;
 
+// 숫자 애니메이션을 위한 커스텀 훅
+const useNumberAnimation = (endValue: number, shouldStart: boolean, duration: number = 1500, delay: number = 0) => {
+  const [value, setValue] = useState(0);
+  const animationRef = useRef<number | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    // 이전 애니메이션 정리
+    if (animationRef.current) {
+      cancelAnimationFrame(animationRef.current);
+    }
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    if (shouldStart && endValue !== undefined && endValue !== null && !isNaN(endValue)) {
+      setValue(0); // 시작값을 0으로 리셋
+      
+      timeoutRef.current = setTimeout(() => {
+        const startTime = Date.now();
+        
+        const animate = () => {
+          const currentTime = Date.now();
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          
+          // easeOutCubic 이징 함수 적용
+          const easedProgress = 1 - Math.pow(1 - progress, 3);
+          const currentValue = easedProgress * endValue;
+
+          setValue(currentValue);
+
+          if (progress < 1) {
+            animationRef.current = requestAnimationFrame(animate);
+          }
+        };
+        
+        animationRef.current = requestAnimationFrame(animate);
+      }, delay);
+    }
+
+    return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [endValue, shouldStart, duration, delay]);
+
+  return value;
+};
+
 const DataValue = styled.span<{ screenSize: 'extraSmall' | 'small' | 'medium' | 'large' }>`
   font-size: ${props => responsiveStyles[props.screenSize].valueSize};
   color: #797979;
   font-weight: 700;
+  transition: color 0.3s ease;
 `;
+
+// 애니메이션이 적용된 숫자 컴포넌트
+const AnimatedNumber: React.FC<{ 
+  value: number; 
+  format?: (value: number) => string; 
+  delay?: number;
+  shouldStart: boolean;
+}> = ({ 
+  value, 
+  format = (v) => v.toFixed(2),
+  delay = 0,
+  shouldStart
+}) => {
+  const animatedValue = useNumberAnimation(value, shouldStart, 1500, delay);
+  return <>{format(animatedValue)}</>;
+};
 
 const ColorCircle = styled.div<{ color: string, screenSize: 'extraSmall' | 'small' | 'medium' | 'large' }>`
   width: ${props => responsiveStyles[props.screenSize].circleSize};
@@ -619,7 +690,7 @@ const ButtonsContainer = styled.div<{ isVisible: boolean }>`
   padding-bottom: env(safe-area-inset-bottom); // iOS Safari 하단 영역 고려
 `;
 
-const Button = styled.button`
+const Button = styled.button<{ isRotated?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
@@ -643,6 +714,8 @@ const Button = styled.button`
     width: 18px;
     height: 18px;
     object-fit: contain;
+    transition: transform 0.6s ease;
+    transform: ${props => props.isRotated ? 'rotate(180deg)' : 'rotate(0deg)'};
   }
 `;
 
@@ -848,6 +921,8 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
   const [contentTransitioning, setContentTransitioning] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [shouldWiggle, setShouldWiggle] = useState(false);
+  const [startNumberAnimation, setStartNumberAnimation] = useState(false);
+  const [hasAnimated, setHasAnimated] = useState(false);
   
   // AI 결과 상태 추가
   const [aiResult, setAiResult] = useState<{title: string; description: string}>({
@@ -872,6 +947,16 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
   });
   const [animationComplete, setAnimationComplete] = useState(false);
   
+  // 페이지 진입 시 한 번만 숫자 애니메이션 시작
+  useEffect(() => {
+    if (result && !hasAnimated) {
+      setTimeout(() => {
+        setStartNumberAnimation(true);
+        setHasAnimated(true);
+      }, 1000); // 카드가 나타난 후 1초 뒤에 시작
+    }
+  }, [result, hasAnimated]);
+  
   // AI 분석 결과 가져오기
   useEffect(() => {
     if (result) {
@@ -887,14 +972,13 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
           
           // 로딩이 완료되면 한 번만 카드 흔들림 애니메이션 실행
           setTimeout(() => {
-            // 한 번만 실행되도록 임시 변수로 애니메이션 제어
             setShouldWiggle(true);
             
             // 애니메이션 완료 후 리셋 (애니메이션 지속 시간과 일치)
             setTimeout(() => {
               setShouldWiggle(false);
             }, 2000);
-          }, 500);
+          }, 1000);
           
         } catch (error) {
           console.error("AI 결과 가져오기 오류:", error);
@@ -1137,7 +1221,9 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
                     {/* 상단 측정 결과 */}
                     <DataItem top="12%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>얼굴 너비-높이 비율</DataLabel>
-                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.faceRatio * 0.4 + 0.5)}</DataValue>
+                      <DataValue screenSize={screenSize}>
+                        {result && <AnimatedNumber value={result.faceRatio * 0.4 + 0.5} format={(v) => v.toFixed(2)} delay={500} shouldStart={startNumberAnimation} />}
+                      </DataValue>
                     </DataItem>
                     
                     {/* 왼쪽 상단 */}
@@ -1155,55 +1241,73 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
                     {/* 얼굴 대칭성 */}
                     <DataItem top="20%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>얼굴 대칭성</DataLabel>
-                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.symmetryScore * 100, 0)}%</DataValue>
+                      <DataValue screenSize={screenSize}>
+                        {result && <AnimatedNumber value={result.symmetryScore * 100} format={(v) => `${v.toFixed(0)}%`} delay={700} shouldStart={startNumberAnimation} />}
+                      </DataValue>
                     </DataItem>
                     
                     {/* 왼쪽 중앙 */}
                     <DataItem top="27%" left="12%" textAlign="left" screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>왼쪽 눈 기울기</DataLabel>
-                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.eyeAngleDeg_L, 1)}°</DataValue>
+                      <DataValue screenSize={screenSize}>
+                        {result && <AnimatedNumber value={result.eyeAngleDeg_L} format={(v) => `${v.toFixed(1)}°`} delay={900} shouldStart={startNumberAnimation} />}
+                      </DataValue>
                     </DataItem>
                     
                     {/* 오른쪽 중앙 */}
                     <DataItem top="27%" right="12%" textAlign="right" screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>오른쪽 눈 기울기</DataLabel>
-                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.eyeAngleDeg_R, 1)}°</DataValue>
+                      <DataValue screenSize={screenSize}>
+                        {result && <AnimatedNumber value={result.eyeAngleDeg_R} format={(v) => `${v.toFixed(1)}°`} delay={900} shouldStart={startNumberAnimation} />}
+                      </DataValue>
                     </DataItem>
                     
                     {/* 눈 사이 거리 */}
                     <DataItem top="27%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>눈 사이 거리</DataLabel>
-                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.eyeDistanceRatio)}</DataValue>
+                      <DataValue screenSize={screenSize}>
+                        {result && <AnimatedNumber value={result.eyeDistanceRatio} format={(v) => v.toFixed(2)} delay={1100} shouldStart={startNumberAnimation} />}
+                      </DataValue>
                     </DataItem>
                     
                     {/* 코 길이 */}
                     <DataItem top="33%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>코 길이</DataLabel>
-                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.noseLength)}</DataValue>
+                      <DataValue screenSize={screenSize}>
+                        {result && <AnimatedNumber value={result.noseLength} format={(v) => v.toFixed(2)} delay={1300} shouldStart={startNumberAnimation} />}
+                      </DataValue>
                     </DataItem>
                     
                     {/* 코 높이 */}
                     <DataItem top="40%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>코 높이</DataLabel>
-                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.noseHeight)}</DataValue>
+                      <DataValue screenSize={screenSize}>
+                        {result && <AnimatedNumber value={result.noseHeight} format={(v) => v.toFixed(2)} delay={1500} shouldStart={startNumberAnimation} />}
+                      </DataValue>
                     </DataItem>
                     
                     {/* 왼쪽 콧망울 */}
                     <DataItem top="40%" left="20%" textAlign="left" screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>왼쪽 콧망울 크기</DataLabel>
-                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.nostrilSize_L)}</DataValue>
+                      <DataValue screenSize={screenSize}>
+                        {result && <AnimatedNumber value={result.nostrilSize_L} format={(v) => v.toFixed(2)} delay={1700} shouldStart={startNumberAnimation} />}
+                      </DataValue>
                     </DataItem>
                     
                     {/* 오른쪽 콧망울 */}
                     <DataItem top="40%" right="20%" textAlign="right" screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>오른쪽 콧망울 크기</DataLabel>
-                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.nostrilSize_R)}</DataValue>
+                      <DataValue screenSize={screenSize}>
+                        {result && <AnimatedNumber value={result.nostrilSize_R} format={(v) => v.toFixed(2)} delay={1700} shouldStart={startNumberAnimation} />}
+                      </DataValue>
                     </DataItem>
                     
                     {/* 아랫입술 두께 */}
                     <DataItem top="50%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>아랫입술 두께</DataLabel>
-                      <DataValue screenSize={screenSize}>{result && safeToFixed(result.lowerLipThickness)}</DataValue>
+                      <DataValue screenSize={screenSize}>
+                        {result && <AnimatedNumber value={result.lowerLipThickness} format={(v) => v.toFixed(2)} delay={1900} shouldStart={startNumberAnimation} />}
+                      </DataValue>
                     </DataItem>
                     
                     {/* 피부 색상 */}
@@ -1270,7 +1374,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
             <img src={`${process.env.PUBLIC_URL}/images/icon/retake.png`} alt="다시 찍기" />
           </Button>
           {!isLoading && (
-            <Button onClick={animationComplete ? handleCardFlip : undefined}>
+            <Button onClick={animationComplete ? handleCardFlip : undefined} isRotated={isFlipped}>
               <img src={`${process.env.PUBLIC_URL}/images/icon/flip.png`} alt="카드 뒤집기" />
             </Button>
           )}
