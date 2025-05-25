@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { createGlobalStyle } from 'styled-components';
 import './App.css';
 import WebcamDetection from './components/WebcamDetection';
+import Onboarding from './components/Onboarding';
 
 // 전역 스타일 설정
 const GlobalStyle = createGlobalStyle`
@@ -26,6 +27,7 @@ const GlobalStyle = createGlobalStyle`
 
 function App() {
   const [isVisible, setIsVisible] = useState(false);
+  const [currentPage, setCurrentPage] = useState<'onboarding' | 'webcam'>('onboarding');
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -72,12 +74,20 @@ function App() {
     };
   }, []);
 
+  const handleStart = () => {
+    setCurrentPage('webcam');
+  };
+
   return (
     <>
       <GlobalStyle />
       <div className="App">
         <section id="demos" className={isVisible ? '' : 'invisible'}>
-          <WebcamDetection />
+          {currentPage === 'onboarding' ? (
+            <Onboarding onStart={handleStart} />
+          ) : (
+            <WebcamDetection />
+          )}
         </section>
       </div>
     </>

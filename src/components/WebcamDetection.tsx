@@ -132,7 +132,7 @@ const WebcamDetection: React.FC = () => {
   const requestRef = useRef<number | null>(null);
   const lastResultsRef = useRef<any>(null); // 마지막 결과 저장
   const drawingUtilsRef = useRef<DrawingUtils | null>(null);
-  const videoWidth = 480;
+  const videoWidth = 400;
   
   // 뷰포트 높이 관리
   const [viewportHeight, setViewportHeight] = useState(window.innerHeight);
@@ -148,6 +148,7 @@ const WebcamDetection: React.FC = () => {
   // 히든 기능: 탭 카운트와 섹션 표시 상태
   const [tapCount, setTapCount] = useState(0);
   const [sectionsVisible, setSectionsVisible] = useState(false);
+  const [showGearButton, setShowGearButton] = useState(false);
 
   // 디바이스 타입 상태 (모바일/데스크톱)
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 479);
@@ -242,6 +243,7 @@ const WebcamDetection: React.FC = () => {
       setTapCount(prevCount => {
         const newCount = prevCount + 1;
         if (newCount >= 10) {
+          setShowGearButton(true);
           setSectionsVisible(true);
           return 0; // 카운트 리셋
         }
@@ -1944,7 +1946,7 @@ const WebcamDetection: React.FC = () => {
           className="webcam-container" 
           style={{ 
             height: isMobile ? `${viewportHeight}px` : '800px',
-            width: isMobile ? '100vw' : '100%'
+            width: isMobile ? '100vw' : '400px'
           }}
         >
           <div 
@@ -2005,32 +2007,34 @@ const WebcamDetection: React.FC = () => {
             )}
             
             {/* 히든 메뉴 호출 버튼 */}
-            <button
-              onClick={() => {
-                setSectionsVisible(true);
-                setShowDeviceInfo(!showDeviceInfo); // 디바이스 정보 표시 토글
-              }}
-              style={{
-                position: 'absolute',
-                top: '10px',
-                left: '10px',
-                zIndex: 2000,
-                background: 'rgba(255, 255, 255, 0.3)',
-                border: 'none',
-                borderRadius: '50%',
-                width: '40px',
-                height: '40px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                cursor: 'pointer',
-                fontSize: '20px',
-                color: 'white',
-                backdropFilter: 'blur(2px)'
-              }}
-            >
-              ⚙️
-            </button>
+            {showGearButton && (
+              <button
+                onClick={() => {
+                  setSectionsVisible(true);
+                  setShowDeviceInfo(!showDeviceInfo); // 디바이스 정보 표시 토글
+                }}
+                style={{
+                  position: 'absolute',
+                  top: '10px',
+                  left: '10px',
+                  zIndex: 2000,
+                  background: 'rgba(255, 255, 255, 0.3)',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '40px',
+                  height: '40px',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  fontSize: '20px',
+                  color: 'white',
+                  backdropFilter: 'blur(2px)'
+                }}
+              >
+                ⚙️
+              </button>
+            )}
             
             {/* 카메라 화면 위에 버튼 추가 */}
             <AnalysisButton 
