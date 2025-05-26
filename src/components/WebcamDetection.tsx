@@ -239,12 +239,20 @@ const WebcamDetection: React.FC = () => {
 
   // 화면 탭/클릭 이벤트 처리를 위한 useEffect
   useEffect(() => {
-    const handleTap = () => {
+    const handleTap = (e: Event) => {
+      // 버튼이나 다른 UI 요소를 클릭한 경우 제외
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'BUTTON' || target.closest('button') || target.closest('.section-title')) {
+        return;
+      }
+      
       setTapCount(prevCount => {
         const newCount = prevCount + 1;
+        console.log(`탭 카운트: ${newCount}/10`); // 디버깅용
         if (newCount >= 10) {
           setShowGearButton(true);
           setSectionsVisible(true);
+          console.log('히든 메뉴 활성화!'); // 디버깅용
           return 0; // 카운트 리셋
         }
         return newCount;
@@ -253,12 +261,15 @@ const WebcamDetection: React.FC = () => {
 
     const container = containerRef.current;
     if (container) {
+      // 모바일과 데스크톱 모두 지원하도록 이벤트 추가
       container.addEventListener('click', handleTap);
+      container.addEventListener('touchend', handleTap, { passive: true });
     }
 
     return () => {
       if (container) {
         container.removeEventListener('click', handleTap);
+        container.removeEventListener('touchend', handleTap);
       }
     };
   }, []);
@@ -1241,7 +1252,14 @@ const WebcamDetection: React.FC = () => {
             
             // 눈 기울기 차이가 3도 이내일 때 데이터 저장 (결과 카드용)
             if (eyeAngleDiff <= 3) {
-              setOptimalFaceData(faceFeatures);
+              // 실시간 UI에서 표시되는 변환된 값들로 optimalFaceData 생성
+              const transformedFaceData = {
+                ...faceFeatures,
+                // 실시간 UI와 동일한 변환 적용
+                displayFaceRatio: parseFloat((faceFeatures.faceRatio * 0.4 + 0.5).toFixed(2)),
+                displaySymmetryScore: parseFloat((faceFeatures.symmetryScore * 100).toFixed(0))
+              };
+              setOptimalFaceData(transformedFaceData);
             }
             
             // 얼굴 너비-높이 비율 그래프 업데이트 - 항상 실시간 값 사용
