@@ -398,6 +398,9 @@ const WebcamDetection: React.FC = () => {
     eyeDarkCircleColor: string; // 눈 아래 다크서클 색상 (HEX)
     skinToneColor: string; // 피부 평균 색상 (HEX)
     faceWidthPixels?: number; // 픽셀 단위 얼굴 너비
+    // 플랫폼별 최종 계산된 값들 (UI에서 직접 사용)
+    displayFaceRatio: number; // 플랫폼별 최종 얼굴 비율
+    displaySymmetryScore: number; // 플랫폼별 최종 대칭성 점수
     [key: string]: number | string | undefined;
   }
 
@@ -415,6 +418,9 @@ const WebcamDetection: React.FC = () => {
     
     // 얼굴 랜드마크를 이용한 특성 계산
     const landmarks = faceLandmarks[0]; // 첫 번째 얼굴의 랜드마크
+    
+    // 현재 플랫폼 감지
+    const isMobileView = window.innerWidth <= 479;
     
     // 픽셀 색상을 추출하는 함수
     const getPixelColor = (landmarks: any, index: number, canvas: HTMLCanvasElement): string => {
@@ -520,26 +526,25 @@ const WebcamDetection: React.FC = () => {
     // 비율 범위를 0.2~0.95로 확장하여 더 넓은 변화 범위 제공
     const normalizedFaceRatio = Math.min(Math.max((rawFaceRatio - 0.3)), 3);
     
-    // faceRatio 필드는 모든 디바이스에서 동일하게 처리하여 항상 실시간 반영되도록 함
-    // 모바일에서는 값 변화를 더 부드럽게 만들기 위해 정적 변수를 사용한 스무딩 적용
-    let faceRatio = normalizedFaceRatio;
+    // 원본 faceRatio 계산 (스무딩 적용)
+    let baseFaceRatio = normalizedFaceRatio;
     
     // 스무딩 처리를 위한 static 변수
     if (typeof calculateFaceFeatures.lastFaceRatio === 'undefined') {
       calculateFaceFeatures.lastFaceRatio = normalizedFaceRatio;
     }
     
-    // 모바일 환경 감지 - 모바일에서만 스무딩 적용 (window.innerWidth 직접 사용)
-    const isMobileView = window.innerWidth <= 479;
-    
     if (isMobileView) {
       // 모바일에서는 이전 값과 현재 값 사이의 부드러운 전환을 위해 보간(interpolation) 적용
       // 이전 값에 가중치 0.7, 새 값에 가중치 0.3을 두어 갑작스러운 변화 방지
-      faceRatio = calculateFaceFeatures.lastFaceRatio * 0.7 + normalizedFaceRatio * 0.3;
+      baseFaceRatio = calculateFaceFeatures.lastFaceRatio * 0.7 + normalizedFaceRatio * 0.3;
     }
     
     // 다음 프레임을 위해 현재 값 저장
-    calculateFaceFeatures.lastFaceRatio = faceRatio;
+    calculateFaceFeatures.lastFaceRatio = baseFaceRatio;
+    
+    // 플랫폼별 최종 계산된 값 생성
+    const displayFaceRatio = parseFloat((baseFaceRatio * 0.4 + 0.5).toFixed(2));
     
     // 대칭성 계산을 위한 여러 특징점 비교
     // 1. 양쪽 눈 비교
@@ -672,6 +677,9 @@ const WebcamDetection: React.FC = () => {
     // 대칭성 점수 정규화 (0.2 ~ 0.95 범위로)
     // 왼쪽 눈을 감거나 한쪽 입을 올리면 약 20% 정도가 되도록 조정
     const normalizedSymmetry = 0.2 + Math.pow(symmetryScore, 1.5) * 0.75;
+    
+    // 플랫폼별 최종 계산된 대칭성 점수
+    const displaySymmetryScore = parseFloat((normalizedSymmetry * 100).toFixed(0));
     
     // 눈 기울기 계산
     // 수평선을 기준으로 한 눈 기울기 계산 (0도가 수평, 눈 꼬리가 쳐지면 음수)
@@ -913,7 +921,9 @@ const WebcamDetection: React.FC = () => {
         eyeIrisColor_L: '#000000',
         eyeIrisColor_R: '#000000',
         eyeDarkCircleColor: '#000000',
-        skinToneColor: '#000000'
+        skinToneColor: '#000000',
+        displayFaceRatio: 0.7,
+        displaySymmetryScore: 85
       } as any;
     }
 
@@ -975,10 +985,17 @@ const WebcamDetection: React.FC = () => {
     // 픽셀 단위 얼굴 너비 계산
     const faceWidthPixels = maxX - minX;
     
-    // 실제 특성을 계산한 결과 반환
+    // 플랫폼별로 계산된 최종 결과 반환
     return {
-      faceRatio: faceRatio, // 얼굴 너비-높이 비율 (정규화된 값)
-      symmetryScore: normalizedSymmetry, // 얼굴 대칭성 점수 (0-1 범위)
+      // 원본 값들 (내부 계산용)
+      faceRatio: baseFaceRatio, // 원본 비율 (스무딩 적용)
+      symmetryScore: normalizedSymmetry, // 원본 대칭성 점수 (0-1 범위)
+      
+      // 플랫폼별 최종 계산된 값들 (UI에서 직접 사용)
+      displayFaceRatio: displayFaceRatio, // 플랫폼별 최종 얼굴 비율
+      displaySymmetryScore: displaySymmetryScore, // 플랫폼별 최종 대칭성 점수
+      
+      // 나머지 특성들
       foreheadNoseChinRatio: Math.random() * 0.8 + 0.2,
       eyeWidth_L: leftEyeWidth / faceWidth * 10,
       eyeWidth_R: rightEyeWidth / faceWidth * 10,
@@ -1071,7 +1088,7 @@ const WebcamDetection: React.FC = () => {
         // 계산된 faceRatio 값을 콘솔에 출력 (디버깅용)
         if (isCurrentlyMobile) {
           console.log('모바일에서 계산된 faceRatio:', faceFeatures.faceRatio, 
-                     '실제 비율:', (faceFeatures.faceRatio * 0.4 + 0.5).toFixed(2));
+                     '실제 비율:', faceFeatures.displayFaceRatio.toFixed(2));
         }
         
         // 기존 결과와 계산된 특성을 병합
@@ -1163,7 +1180,7 @@ const WebcamDetection: React.FC = () => {
             // faceFeatures 객체를 콘솔에 출력하여 값 확인 (디버깅용)
             console.log('실시간 faceFeatures:', {
               faceRatio: faceFeatures.faceRatio,
-              actualRatio: (faceFeatures.faceRatio * 0.4 + 0.5).toFixed(2)
+              displayFaceRatio: faceFeatures.displayFaceRatio.toFixed(2)
             });
             
             // PC/모바일 환경 상관없이 동일한 방식으로 값 계산
@@ -1252,26 +1269,19 @@ const WebcamDetection: React.FC = () => {
             
             // 눈 기울기 차이가 3도 이내일 때 데이터 저장 (결과 카드용)
             if (eyeAngleDiff <= 3) {
-              // 실시간 UI에서 표시되는 변환된 값들로 optimalFaceData 생성
-              const transformedFaceData = {
-                ...faceFeatures,
-                // 실시간 UI와 동일한 변환 적용
-                displayFaceRatio: parseFloat((faceFeatures.faceRatio * 0.4 + 0.5).toFixed(2)),
-                displaySymmetryScore: parseFloat((faceFeatures.symmetryScore * 100).toFixed(0))
-              };
-              setOptimalFaceData(transformedFaceData);
+              // 이미 플랫폼별로 계산된 값들이 포함된 faceFeatures를 그대로 저장
+              setOptimalFaceData(faceFeatures);
             }
             
-            // 얼굴 너비-높이 비율 그래프 업데이트 - 항상 실시간 값 사용
+            // 얼굴 너비-높이 비율 그래프 업데이트 - 플랫폼별 계산된 값 사용
             const faceRatioBar = document.getElementById("face-ratio-bar");
             const faceRatioText = document.getElementById("face-ratio-text");
             if (faceRatioBar && faceRatioText) {
-              // 항상 현재 계산된 faceRatio 값을 사용 (optimalFaceData가 아님)
-              const faceRatioValue = faceFeatures.faceRatio;
+              // 플랫폼별로 이미 계산된 displayFaceRatio 값을 직접 사용
+              const displayRatio = faceFeatures.displayFaceRatio;
               
-              
-              // 실제 비율을 0-100% 스케일로 변환 (그래프 표시용)
-              const faceRatioPercent = (faceRatioValue * 100).toFixed(1);
+              // 그래프 표시용 퍼센트는 원본 faceRatio 값 사용 (0-1 범위를 0-100%로)
+              const faceRatioPercent = (faceFeatures.faceRatio * 100).toFixed(1);
               
               // 명시적으로 DOM 업데이트 강제화 - 모바일에서도 확실히 반영되도록
               // 브라우저의 최적화로 인해 값이 같으면 DOM 업데이트가 무시될 수 있으므로
@@ -1287,14 +1297,13 @@ const WebcamDetection: React.FC = () => {
                   faceRatioBar.style.width = `${faceRatioPercent}%`;
                 }
                 
-                // 텍스트 업데이트
-                const actualRatio = (faceRatioValue * 0.4 + 0.5).toFixed(2);
+                // 텍스트 업데이트 - 이미 계산된 값 사용
                 if (faceRatioText) {
-                  faceRatioText.textContent = `${actualRatio}`;
+                  faceRatioText.textContent = `${displayRatio}`;
                 }
                 
                 // 색상 클래스 업데이트
-                const ratioValueClass = getValueClass(faceRatioValue);
+                const ratioValueClass = getValueClass(faceFeatures.faceRatio);
                 if (faceRatioBar) {
                   faceRatioBar.classList.remove('test-low', 'test-medium', 'test-high');
                   faceRatioBar.classList.add(`test-${ratioValueClass}`);
@@ -1304,12 +1313,11 @@ const WebcamDetection: React.FC = () => {
                 window.requestAnimationFrame(() => {
                   if (faceRatioBar) faceRatioBar.style.width = `${faceRatioPercent}%`;
                   
-                  // 텍스트는 실제 비율 값으로 표시 (0.6-0.8 정도가 일반적인 비율)
-                  const actualRatio = (faceRatioValue * 0.4 + 0.5).toFixed(2);
-                  if (faceRatioText) faceRatioText.textContent = `${actualRatio}`;
+                  // 텍스트는 이미 계산된 값으로 표시
+                  if (faceRatioText) faceRatioText.textContent = `${displayRatio}`;
                   
                   // 값에 따른 색상 클래스 설정
-                  const ratioValueClass = getValueClass(faceRatioValue);
+                  const ratioValueClass = getValueClass(faceFeatures.faceRatio);
                   if (faceRatioBar) {
                     faceRatioBar.classList.remove('test-low', 'test-medium', 'test-high');
                     faceRatioBar.classList.add(`test-${ratioValueClass}`);
@@ -1318,21 +1326,22 @@ const WebcamDetection: React.FC = () => {
               }
             }
             
-            // 얼굴 대칭성 그래프 업데이트
+            // 얼굴 대칭성 그래프 업데이트 - 플랫폼별 계산된 값 사용
             const symmetryBar = document.getElementById("symmetry-bar");
             const symmetryText = document.getElementById("symmetry-text");
             if (symmetryBar && symmetryText) {
-              const symmetryValue = faceFeatures.symmetryScore;
-              // 정규화된 값을 0-100% 스케일로 변환 (그래프 표시용)
-              const symmetryPercent = (symmetryValue * 100).toFixed(0);
-              symmetryBar.style.width = `${symmetryPercent}%`;
-              // 텍스트는 퍼센트로 표시
-              symmetryText.textContent = `${symmetryPercent}%`;
+              // 플랫폼별로 이미 계산된 displaySymmetryScore 값을 직접 사용
+              const displaySymmetry = faceFeatures.displaySymmetryScore;
               
-              // 값에 따른 색상 클래스 설정 (낮은 대칭성은 눈에 띄게)
+              // 그래프 표시용 (이미 퍼센트 값이므로 그대로 사용)
+              symmetryBar.style.width = `${displaySymmetry}%`;
+              // 텍스트도 이미 계산된 값 사용
+              symmetryText.textContent = `${displaySymmetry}%`;
+              
+              // 값에 따른 색상 클래스 설정 (원본 값 기준으로 색상 결정)
               let symmetryValueClass;
-              if (symmetryValue < 0.3) symmetryValueClass = 'low';
-              else if (symmetryValue < 0.6) symmetryValueClass = 'medium';
+              if (faceFeatures.symmetryScore < 0.3) symmetryValueClass = 'low';
+              else if (faceFeatures.symmetryScore < 0.6) symmetryValueClass = 'medium';
               else symmetryValueClass = 'high';
               
               symmetryBar.classList.remove('test-low', 'test-medium', 'test-high');
@@ -2076,13 +2085,11 @@ const WebcamDetection: React.FC = () => {
               <div className="result-grid">
                 <div className="result-label">얼굴 너비-높이 비율:</div>
                 <div className="result-value">
-                  {lastResultsRef.current ? 
-                    ((calculateFaceFeatures(lastResultsRef.current.faceLandmarks).faceRatio * 0.4 + 0.5).toFixed(2)) : 
-                    (result ? (result.faceRatio * 0.4 + 0.5).toFixed(2) : "0.00")}
+                  {result.displayFaceRatio ? result.displayFaceRatio.toFixed(2) : "0.00"}
                 </div>
                 
                 <div className="result-label">얼굴 대칭성:</div>
-                <div className="result-value">{(result.symmetryScore * 100).toFixed(0)}%</div>
+                <div className="result-value">{result.displaySymmetryScore ? result.displaySymmetryScore.toFixed(0) : "0"}%</div>
                 
                 <div className="result-label">왼쪽 눈 기울기:</div>
                 <div className="result-value">{result.eyeAngleDeg_L.toFixed(1)}°</div>

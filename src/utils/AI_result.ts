@@ -16,6 +16,8 @@ interface ResultProps {
   eyeDarkCircleColor: string;
   skinToneColor: string;
   userName?: string;
+  displayFaceRatio?: number;
+  displaySymmetryScore?: number;
 }
 
 interface AIResult {
@@ -59,17 +61,44 @@ export const getAIResult = async (data: ResultProps): Promise<AIResult> => {
       };
     }
 
-    // 입력 데이터를 문자열로 변환
+    // 디바이스 타입 감지 함수 (FaceAnalysisBox와 동일한 로직)
+    const detectDeviceType = (): string => {
+      const userAgent = navigator.userAgent.toLowerCase();
+      
+      if (/iphone|ipad|ipod/.test(userAgent)) {
+        return 'iOS';
+      } else if (/android/.test(userAgent)) {
+        return 'Android';
+      } else {
+        return 'PC';
+      }
+    };
+
+    const currentDeviceType = detectDeviceType();
+
+    // UI에서 실제로 표시되는 값들을 계산 (FaceAnalysisBox와 동일한 로직)
+    let displayNoseHeight = data.noseHeight;
+    let displayNoseLength = data.noseLength;
+    let displayLowerLipThickness = data.lowerLipThickness;
+
+    // 모바일 디바이스인 경우 UI 표시용 변환 적용 (FaceAnalysisBox와 동일)
+    if (currentDeviceType === 'iOS' || currentDeviceType === 'Android') {
+      displayNoseHeight = displayNoseHeight / 3; // 코 높이 계산에 /3
+      displayNoseLength = displayNoseLength * 3; // 코 길이 계산에 *3
+      displayLowerLipThickness = displayLowerLipThickness * 3; // 밑 입술 계산에 *3
+    }
+
+    // 입력 데이터를 문자열로 변환 (UI에서 실제로 표시되는 값 사용)
     const inputData = `
-    - 얼굴 너비-높이 비율: ${(data.faceRatio * 0.4 + 0.5).toFixed(2)}  
-    - 얼굴 대칭성: ${(data.symmetryScore * 100).toFixed(0)}%  
+    - 얼굴 너비-높이 비율: ${(data.displayFaceRatio || data.faceRatio).toFixed(2)}  
+    - 얼굴 대칭성: ${(data.displaySymmetryScore || data.symmetryScore).toFixed(0)}%  
     - 눈 기울기 좌/우: ${data.eyeAngleDeg_L.toFixed(1)}° / ${data.eyeAngleDeg_R.toFixed(1)}°  
     - 눈 사이 거리: ${data.eyeDistanceRatio.toFixed(2)}  
-    - 코 길이: ${data.noseLength.toFixed(2)}  
-    - 코 높이: ${data.noseHeight.toFixed(2)}  
+    - 코 길이: ${displayNoseLength.toFixed(2)}  
+    - 코 높이: ${displayNoseHeight.toFixed(2)}  
     - 왼쪽 콧망울: ${data.nostrilSize_L.toFixed(2)}  
     - 오른쪽 콧망울: ${data.nostrilSize_R.toFixed(2)}  
-    - 아랫입술 두께: ${data.lowerLipThickness.toFixed(2)}  
+    - 아랫입술 두께: ${displayLowerLipThickness.toFixed(2)}  
     - 왼쪽 눈 색상: ${data.eyeIrisColor_L}  
     - 오른쪽 눈 색상: ${data.eyeIrisColor_R}  
     - 다크서클 색상: ${data.eyeDarkCircleColor}  

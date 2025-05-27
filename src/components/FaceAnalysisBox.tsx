@@ -673,22 +673,18 @@ export const drawFaceAnalysisBox = ({
     // fwhrPrefix = '[M] '; // 모바일 표시용 접두사
   }
   
-  // 디바이스별 fWHR 계산 - 모바일에서는 분자와 분모를 바꿔서 계산
-  let displayFaceRatio = faceRatioValue;
-  if (boxDeviceType === 'iOS' || boxDeviceType === 'Android') {
-    // 모바일에서는 기존 비율의 역수를 취하고 적절히 스케일링
-    // displayFaceRatio = 1 / displayFaceRatio; 
-  }
+  // 이미 플랫폼별로 계산된 displayFaceRatio 값을 직접 사용
+  const displayRatio = faceFeatures.displayFaceRatio ? 
+    faceFeatures.displayFaceRatio.toFixed(2) : 
+    "0.70"; // fallback
   
-  // 항상 최신 계산값으로 표시
-  const actualRatio = (displayFaceRatio * 0.4 + 0.5).toFixed(2);
-  const displayRatio = `${fwhrPrefix}${actualRatio}`;
+  const displayRatioText = `${fwhrPrefix}${displayRatio}`;
   
   // 실시간 fWHR 값을 적용하여 그래프 그리기
   drawFeatureBar({
     label: 'fWHR',
     value: faceRatioValue, // 그래프 표시용 원본 값은 유지
-    displayValue: displayRatio,
+    displayValue: displayRatioText,
     position: 0.33,
     boxX: flippedBoxX,
     boxY,
@@ -700,22 +696,17 @@ export const drawFaceAnalysisBox = ({
   // fSR (얼굴 대칭성) 표시
   const symmetryValue = faceFeatures.symmetryScore;
   
-  // 디바이스에 따라 다른 계산 적용
-  let displaySymmetryValue = symmetryValue;
-  if (boxDeviceType === 'iOS' || boxDeviceType === 'Android') {
-    // 모바일에서는 대칭성 점수에 특정 가중치 적용 (예: 10% 증가)
-    displaySymmetryValue = symmetryValue * 1.1;
-    // 최대값 1.0 제한
-    displaySymmetryValue = Math.min(displaySymmetryValue, 1.0);
-  }
+  // 이미 플랫폼별로 계산된 displaySymmetryScore 값을 직접 사용
+  const displaySymmetryPercent = faceFeatures.displaySymmetryScore ? 
+    faceFeatures.displaySymmetryScore.toFixed(0) : 
+    "85"; // fallback
   
-  const symmetryPercent = (displaySymmetryValue * 100).toFixed(0);
-  const displaySymmetry = `${fwhrPrefix}${symmetryPercent}%`;
+  const displaySymmetryText = `${fwhrPrefix}${displaySymmetryPercent}%`;
   
   drawFeatureBar({
     label: 'fSR',
     value: symmetryValue, // 그래프 표시용 원본 값은 유지
-    displayValue: displaySymmetry,
+    displayValue: displaySymmetryText,
     position: 0.67,
     boxX: flippedBoxX,
     boxY,

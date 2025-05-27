@@ -1224,7 +1224,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
                     <DataItem top="12%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>얼굴 너비-높이 비율</DataLabel>
                       <DataValue screenSize={screenSize}>
-                        {result && <AnimatedNumber value={Number(result.displayFaceRatio) || (result.faceRatio * 0.4 + 0.5)} format={(v) => v.toFixed(2)} delay={500} shouldStart={startNumberAnimation} />}
+                        {result && <AnimatedNumber value={result.displayFaceRatio || 0.7} format={(v) => v.toFixed(2)} delay={500} shouldStart={startNumberAnimation} />}
                       </DataValue>
                     </DataItem>
                     
@@ -1244,7 +1244,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
                     <DataItem top="20%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>얼굴 대칭성</DataLabel>
                       <DataValue screenSize={screenSize}>
-                        {result && <AnimatedNumber value={Number(result.displaySymmetryScore) || (result.symmetryScore * 100)} format={(v) => `${v.toFixed(0)}%`} delay={700} shouldStart={startNumberAnimation} />}
+                        {result && <AnimatedNumber value={result.displaySymmetryScore || 85} format={(v) => `${v.toFixed(0)}%`} delay={700} shouldStart={startNumberAnimation} />}
                       </DataValue>
                     </DataItem>
                     
