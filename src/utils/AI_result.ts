@@ -42,25 +42,38 @@ export enum ErrorType {
   SERVER_ERROR = 10
 }
 
+// 재시도 함수
+const retryWithDelay = async (fn: () => Promise<any>, retries: number = 2, delay: number = 1000): Promise<any> => {
+  try {
+    return await fn();
+  } catch (error) {
+    if (retries > 0) {
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return retryWithDelay(fn, retries - 1, delay * 2);
+    }
+    throw error;
+  }
+};
+
 export const getAIResult = async (data: ResultProps): Promise<AIResult> => {
   try {
-    // API 키 확인
+    // 환경변수 확인
     const apiKey = process.env.REACT_APP_OPENAI_API_KEY;
-    if (!apiKey) {
-      throw new Error('API 키가 설정되지 않았습니다.');
-    }
-
-    // 모델과 시스템 프롬프트를 환경변수에서 가져오기
-    const model = process.env.REACT_APP_OPENAI_MODEL || 'gpt-4.1-nano';
+    const model = process.env.REACT_APP_OPENAI_MODEL || 'gpt-4o-mini';
     const systemPrompt = process.env.REACT_APP_OPENAI_SYSTEM_PROMPT;
     
+    // 필수 환경변수 검증
+    if (!apiKey) {
+      throw new Error('서비스 설정에 문제가 있습니다. 관리자에게 문의해주세요.');
+    }
+    
     if (!systemPrompt) {
-      throw new Error('시스템 프롬프트가 설정되지 않았습니다.');
+      throw new Error('서비스 설정에 문제가 있습니다. 관리자에게 문의해주세요.');
     }
 
-    // 입력 데이터를 문자열로 변환 - 이미 플랫폼별로 계산된 값들을 우선 사용
+    // 입력 데이터 준비
     const inputData = `
-    - username : ${data.userName}
+    - username : ${data.userName || '사용자'}
     - 얼굴 너비-높이 비율: ${(data.displayFaceRatio || data.faceRatio).toFixed(2)}  
     - 얼굴 대칭성: ${(data.displaySymmetryScore || data.symmetryScore).toFixed(0)}%  
     - 눈 기울기 좌/우: ${data.eyeAngleDeg_L.toFixed(1)}° / ${data.eyeAngleDeg_R.toFixed(1)}°  
@@ -75,67 +88,84 @@ export const getAIResult = async (data: ResultProps): Promise<AIResult> => {
     - 피부 색상: ${data.skinToneColor}  
     `;
 
-    console.log('AI API에 전송되는 데이터:', inputData);
+    // API 호출 함수
+    const makeAPICall = async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: model,
-        messages: [
-          {
-            role: "system",
-            content: systemPrompt
+      try {
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
           },
-          {
-            role: "user",
-            content: inputData
+          body: JSON.stringify({
+            model: model,
+            messages: [
+              {
+                role: "system",
+                content: systemPrompt
+              },
+              {
+                role: "user",
+                content: inputData
+              }
+            ],
+            temperature: 1,
+            max_tokens: 2048,
+            top_p: 1
+          }),
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          
+          if (response.status === 401) {
+            throw new Error('인증에 실패했습니다.');
+          } else if (response.status === 429) {
+            throw new Error('요청이 너무 많습니다. 잠시 후 다시 시도해주세요.');
+          } else if (response.status >= 500) {
+            throw new Error('서버에 일시적인 문제가 있습니다.');
+          } else {
+            throw new Error(`분석 요청에 실패했습니다. (${response.status})`);
           }
-        ],
-        temperature: 1,
-        max_tokens: 2048,
-        top_p: 1
-      })
-    });
+        }
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error('API 응답 오류:', response.status, errorData);
-      
-      if (response.status === 401) {
-        throw new Error('API 키가 유효하지 않습니다.');
-      } else if (response.status === 429) {
-        throw new Error('API 요청 한도를 초과했습니다. 잠시 후 다시 시도해주세요.');
-      } else if (response.status >= 500) {
-        throw new Error('서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
-      } else {
-        throw new Error(`API 요청 실패: ${response.status}`);
+        return response.json();
+      } catch (fetchError: any) {
+        clearTimeout(timeoutId);
+        if (fetchError.name === 'AbortError') {
+          throw new Error('요청 시간이 초과되었습니다.');
+        }
+        throw fetchError;
       }
-    }
+    };
 
-    const result = await response.json();
+    // 재시도 로직과 함께 API 호출
+    const result = await retryWithDelay(makeAPICall, 2, 1000);
     
     if (!result.choices || result.choices.length === 0) {
-      throw new Error('AI 응답이 비어있습니다.');
+      throw new Error('분석 결과를 받지 못했습니다.');
     }
 
-    // 응답 텍스트의 첫 번째 줄을 제목으로, 나머지를 설명으로 분리
+    // 응답 처리
     const resultText = result.choices[0].message.content;
-    const lines = resultText.toString().split('\n');
-    const title = lines[0].trim();
-    const description = lines.slice(1).join('\n').trim();
-
-    // 데이터 검증: 실제 결과가 있는지 확인
-    if (!title || !description) {
-      throw new Error('API 응답이 유효한 형식이 아닙니다.');
+    if (!resultText) {
+      throw new Error('분석 결과가 비어있습니다.');
     }
-    
-    // username 값을 제목에 반영
-    const formattedTitle = title.replace('username', data.userName);
-    const formattedDescription = description.replace(/username/g, data.userName);
+
+    const lines = resultText.toString().split('\n');
+    const title = lines[0]?.trim() || '분석 완료';
+    const description = lines.slice(1).join('\n').trim() || '분석이 완료되었습니다.';
+
+    // 사용자명 치환
+    const userName = data.userName || '사용자';
+    const formattedTitle = title.replace(/username/g, userName);
+    const formattedDescription = description.replace(/username/g, userName);
 
     return {
       title: formattedTitle,
@@ -143,17 +173,21 @@ export const getAIResult = async (data: ResultProps): Promise<AIResult> => {
     };
 
   } catch (error: any) {
-    console.error('AI 결과 생성 오류:', error);
+    console.error('AI 분석 오류:', error.message);
     
-    // 에러 타입에 따른 적절한 메시지 반환
-    if (error.message.includes('API 키')) {
-      throw error;
+    // 사용자 친화적인 에러 메시지 반환
+    if (error.message.includes('인증')) {
+      throw new Error('서비스 인증에 문제가 있습니다. 관리자에게 문의해주세요.');
+    } else if (error.message.includes('요청이 너무 많습니다')) {
+      throw new Error('현재 요청이 많아 처리가 지연되고 있습니다. 잠시 후 다시 시도해주세요.');
+    } else if (error.message.includes('시간이 초과')) {
+      throw new Error('분석 시간이 초과되었습니다. 다시 시도해주세요.');
     } else if (error.message.includes('네트워크') || error.name === 'TypeError') {
       throw new Error('네트워크 연결을 확인해주세요.');
-    } else if (error.message.includes('timeout')) {
-      throw new Error('요청 시간이 초과되었습니다. 다시 시도해주세요.');
+    } else if (error.message.includes('서비스 설정')) {
+      throw error; // 설정 오류는 그대로 전달
     } else {
-      throw new Error('분석 결과 생성 중 오류가 발생했습니다.');
+      throw new Error('분석 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
     }
   }
 }; 

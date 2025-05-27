@@ -31,6 +31,8 @@ jobs:
         run: npm run build
         env:
           REACT_APP_OPENAI_API_KEY: ${{ secrets.REACT_APP_OPENAI_API_KEY }}
+          REACT_APP_OPENAI_MODEL: ${{ secrets.REACT_APP_OPENAI_MODEL }}
+          REACT_APP_OPENAI_SYSTEM_PROMPT: ${{ secrets.REACT_APP_OPENAI_SYSTEM_PROMPT }}
           CI: false
       - name: Setup Pages
         uses: actions/configure-pages@v4
