@@ -267,10 +267,10 @@ const WiggleEffectStyle = createGlobalStyle<{ shouldWiggle: boolean }>`
 `;
 
 const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean; isLoading?: boolean }>`
-  width: 90%;
+  width: 95%;
   max-width: 400px;
   aspect-ratio: 0.46;
-  margin: 20px auto 130px;
+  margin: 50px;
   background: #fff;
   border-radius: 20px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
@@ -394,14 +394,14 @@ const TraitImage = styled.img`
 
 const TraitTitle = styled.div`
   position: absolute;
-  bottom: 5%;
+  bottom: 10%;
   left: 0;
   right: 0;
   text-align: center;
   color: #636363;
   text-shadow: 0px 0px 15px rgba(255, 255, 255, 1);
   font-size: 18px;
-  font-weight: 400;
+  font-weight: 800;
   z-index: 25;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
   transform: scaleX(-1);
@@ -679,21 +679,21 @@ const ColorCircle = styled.div<{ color: string, screenSize: 'extraSmall' | 'smal
   margin-top: 2px;
 `;
 
-const ButtonsContainer = styled.div<{ isVisible: boolean }>`
-  display: flex;
-  gap: 16px;
-  width: 100%;
-  justify-content: center;
-  z-index: 20;
-  opacity: ${props => props.isVisible ? 1 : 0};
-  transform: ${props => props.isVisible ? 'translateY(0)' : 'translateY(20px)'};
-  transition: opacity 0.6s ease, transform 0.6s ease;
-  position: fixed;
-  bottom: 60px;
-  left: 0;
-  right: 0;
-  padding-bottom: env(safe-area-inset-bottom); // iOS Safari 하단 영역 고려
-`;
+// const ButtonsContainer = styled.div<{ isVisible: boolean }>`
+//   display: flex;
+//   gap: 16px;
+//   width: 100%;
+//   justify-content: center;
+//   z-index: 20;
+//   opacity: ${props => props.isVisible ? 1 : 0};
+//   transform: ${props => props.isVisible ? 'translateY(0)' : 'translateY(20px)'};
+//   transition: opacity 0.6s ease, transform 0.6s ease;
+//   position: fixed;
+//   // bottom: 60px;
+//   left: 0;
+//   right: 0;
+//   padding-bottom: env(safe-area-inset-bottom); // iOS Safari 하단 영역 고려
+// `;
 
 const Button = styled.button<{ isRotated?: boolean }>`
   display: flex;
