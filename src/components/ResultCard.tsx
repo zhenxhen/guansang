@@ -1374,7 +1374,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
           </CardBack>
         </CardWrapper>
         
-        <ButtonsContainer isVisible={animationState.buttonsVisible}>
+        {/* <ButtonsContainer isVisible={animationState.buttonsVisible}>
           <Button onClick={onRetake}>
             <img src={`${process.env.PUBLIC_URL}/images/icon/retake.png`} alt="다시 찍기" />
           </Button>
@@ -1383,7 +1383,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
               <img src={`${process.env.PUBLIC_URL}/images/icon/flip.png`} alt="카드 뒤집기" />
             </Button>
           )}
-        </ButtonsContainer>
+        </ButtonsContainer> */}
 
         <Footer isVisible={animationState.footerVisible}>
           <Copyright>© 2025 eeezeen. All rights reserved.</Copyright>
