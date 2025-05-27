@@ -243,9 +243,9 @@ const Container = styled.div`
   align-items: center;
   justify-content: flex-start;
   width: 100vw;
-  max-height: calc(100vh);
+  max-height: calc(90vh);
   background: #fff;
-  margin: 0;
+  margin: 0px;
   overflow-x: hidden;
   overflow-y: auto;
   box-sizing: border-box;
@@ -267,10 +267,10 @@ const WiggleEffectStyle = createGlobalStyle<{ shouldWiggle: boolean }>`
 `;
 
 const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean; isLoading?: boolean }>`
-  width: 95%;
+  width: 90%;
   max-width: 400px;
   aspect-ratio: 0.46;
-  margin: 50px;
+  margin: 20px 20px 60px 20px;
   background: #fff;
   border-radius: 20px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
