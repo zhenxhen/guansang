@@ -2415,7 +2415,7 @@ const WebcamDetection: React.FC<WebcamDetectionProps> = ({ userName }) => {
                     1. 카메라와 눈의 높이를 최대한 맞춰주세요. <br />
                     2. 고개를 좌-우로 천천히 돌려주세요. <br />
                     3. 얼굴을 충분히 학습한 뒤 분석 버튼을 눌러주세요.<br />
-                    <p style={{textAlign: 'left', fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', fontWeight: '400' }}> (적당한 학습 정도를 학습 중입니다)</p>
+                    <p style={{textAlign: 'left', fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', fontWeight: '400' }}> (적당한 학습 정도를 확인 중입니다)</p>
                     
                     </p>
                     <p style={{textAlign: 'left', fontSize: '14px', color: '#fff', fontWeight: '400' }}> 최적의 결과를 위해 <br /> 밝은 곳에서 촬영해주세요.</p>
