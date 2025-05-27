@@ -399,7 +399,7 @@ const TraitTitle = styled.div`
   right: 0;
   text-align: center;
   color: #636363;
-  text-shadow: 0px 0px 15px rgba(255, 255, 255, 1);
+  text-shadow: 0px 0px 10px rgba(255, 255, 255, 1);
   font-size: 18px;
   font-weight: 800;
   z-index: 25;
