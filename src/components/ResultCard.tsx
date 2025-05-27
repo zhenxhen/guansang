@@ -931,8 +931,8 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
   
   // AI 결과 상태 추가
   const [aiResult, setAiResult] = useState<{title: string; description: string}>({
-    title: "AI가 분석중입니다",
-    description: "AI가 분석 중입니다..."
+    title: "AI 분석중입니다",
+    description: "AI 분석 중입니다..."
   });
 
   // 전처리된 마크다운 컨텐츠를 담을 상태 추가
@@ -1332,7 +1332,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
                   <ReactMarkdown components={{
                     h1: ({node, ...props}) => <span className="interpret-title" {...props} />
                   }}>
-                    {isLoading ? "AI가 분석중입니다" : "카드를 넘겨 분석 내용을 확인하세요"}
+                    {isLoading ? "AI 분석중입니다" : "카드를 넘겨 분석 내용을 확인하세요"}
                   </ReactMarkdown>
                 </InterpretText>
               </>
