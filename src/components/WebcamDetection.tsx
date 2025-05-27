@@ -170,7 +170,6 @@ const WebcamDetection: React.FC<WebcamDetectionProps> = ({ userName }) => {
   // 테스트 버전 안내 상태
   const [showTestVersionModal, setShowTestVersionModal] = useState(true);
   const [isBlurred, setIsBlurred] = useState(true);
-  const [modalStep, setModalStep] = useState(1); // 1: 첫 번째 단계, 2: 두 번째 단계
 
   // 저장된 데이터를 result로 참조
   const result = optimalFaceData;
@@ -1633,17 +1632,11 @@ const WebcamDetection: React.FC<WebcamDetectionProps> = ({ userName }) => {
 
   // 테스트 버전 확인 핸들러
   const handleTestVersionConfirm = () => {
-    if (modalStep === 1) {
-      // 첫 번째 단계에서 Next 버튼을 누르면 두 번째 단계로
-      setModalStep(2);
-    } else {
-      // 두 번째 단계에서 Start 버튼을 누르면 모달 닫기
-      setShowTestVersionModal(false);
-      // 블러 효과를 서서히 제거
-      setTimeout(() => {
-        setIsBlurred(false);
-      }, 100);
-    }
+    setShowTestVersionModal(false);
+    // 블러 효과를 서서히 제거
+    setTimeout(() => {
+      setIsBlurred(false);
+    }, 100);
   };
 
   // 컴포넌트 언마운트 시 타이머 정리
@@ -2015,7 +2008,7 @@ const WebcamDetection: React.FC<WebcamDetectionProps> = ({ userName }) => {
 
           /* 컨테이너 블러 오버레이 */
           .container-blur-overlay {
-            background-color: rgba(0, 0, 0, 0.5);
+          background-color: rgba(0, 0, 0, 0.5);
             position: absolute;
             top: 0;
             left: 0;
@@ -2047,7 +2040,7 @@ const WebcamDetection: React.FC<WebcamDetectionProps> = ({ userName }) => {
             font-weight: bold;
             color: #fff;
             margin-bottom: 20px;
-            line-height: 1.6;
+            line-height: 1.4;
           }
 
           .test-version-button {
@@ -2384,34 +2377,18 @@ const WebcamDetection: React.FC<WebcamDetectionProps> = ({ userName }) => {
           <div className="test-version-modal">
             <div className="test-version-content">
               <div className="test-version-title">
-                {modalStep === 1 ? (
-                  <>
-                    <p style={{textAlign: 'left', fontSize: '14px', color: '#fff', fontWeight: '400' }}> v0.0.2</p> <br />
-                    유저 베타 테스트 버전입니다. <br />
-                    외부로 링크 공유를 삼가주세요. <br /><br />
-                    지속적으로 업데이트 예정입니다. <br /><br />
-                    <p style={{textAlign: 'left', fontSize: '14px', color: '#fff', fontWeight: '400' }}> 현재 진행 내용을 화면 녹화나 캡쳐로 <br /> 제작자에게 공유해주시면 큰 도움이 됩니다.<br /><br />@eeezeen</p>
-                  </>
-                ) : (
-                  <>
-                    <p style={{textAlign: 'left', fontSize: '14px', color: '#fff', fontWeight: '400' }}> 사용 가이드</p> <br />
-                  
-                    <p style={{textAlign: 'left', fontSize: '14px', color: '#fff', fontWeight: '600' }}>
-                    1. 카메라와 눈의 높이를 최대한 맞춰주세요. <br />
-                    2. 고개를 좌-우로 천천히 돌려주세요. <br />
-                    3. 얼굴을 충분히 학습한 뒤 분석 버튼을 눌러주세요.<br />
-                    <p style={{textAlign: 'left', fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', fontWeight: '400' }}> (적당한 학습 정도를 학습 중입니다)</p>
-                    
-                    </p>
-                    <p style={{textAlign: 'left', fontSize: '14px', color: '#fff', fontWeight: '400' }}> 최적의 결과를 위해 <br /> 밝은 곳에서 촬영해주세요.</p>
-                  </>
-                )}
+               <p style={{textAlign: 'left', fontSize: '14px', color: '#fff', fontWeight: '400' }}> v0.0.1</p> <br />
+                유저 베타 테스트 버전입니다. <br />
+                외부로 링크 공유를 삼가주세요. <br /><br />
+                지속적으로 업데이트 예정입니다. <br /><br />
+                <p style={{textAlign: 'left', fontSize: '14px', color: '#fff', fontWeight: '400' }}> 진행 내용을 화면 녹화나 캡쳐로 <br /> 제작자에게 공유해주시면 큰 도움이 됩니다.<br /><br />@eeezeen</p>
+                
               </div>
               <button 
                 className="test-version-button"
                 onClick={handleTestVersionConfirm}
               >
-                {modalStep === 1 ? 'Next' : 'Start'}
+                Next
               </button>
             </div>
           </div>
