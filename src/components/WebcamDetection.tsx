@@ -2390,7 +2390,7 @@ const WebcamDetection: React.FC<WebcamDetectionProps> = ({ userName }) => {
                     유저 베타 테스트 버전입니다. <br />
                     외부로 링크 공유를 삼가주세요. <br /><br />
                     지속적으로 업데이트 예정입니다. <br /><br />
-                    <p style={{textAlign: 'left', fontSize: '14px', color: '#fff', fontWeight: '400' }}> 현재 진행 내용을 화면 녹화나 캡쳐로 <br /> 제작자에게 공유 부탁드립니다.<br /><br />@eeezeen</p>
+                    <p style={{textAlign: 'left', fontSize: '14px', color: '#fff', fontWeight: '400' }}> 현재 진행 내용을 화면 녹화나 캡쳐로 <br /> 제작자에게 공유해주시면 큰 도움이 됩니다.<br /><br />@eeezeen</p>
                   </>
                 ) : (
                   <>
