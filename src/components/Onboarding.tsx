@@ -49,7 +49,7 @@ const fadeOut = keyframes`
 // Start/Next/Agree 버튼 스타일 (AnalysisButton과 동일)
 const ActionButton = styled.div`
   position: absolute;
-  bottom: 300px;
+  bottom: calc(50% - 100px);
   left: calc(50% - 125px);
   transform: translateX(-50%);
   width: 250px;
@@ -83,7 +83,7 @@ const ActionButton = styled.div`
 // 이름 입력/카메라 권한 블러 박스
 const OverlayBox = styled.div`
   position: absolute;
-  bottom: 380px;
+  bottom: calc(50% - 30px);
   left: calc(50% - 125px);
   transform: translateX(-50%);
   width: 250px;
