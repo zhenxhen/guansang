@@ -49,59 +49,7 @@ src/
 └── ...
 ```
 
-## 시작하기
 
-### 필요 조건
-
-- Node.js 14.x 이상
-- npm 또는 yarn
-- OpenAI API 키 (얼굴 분석 결과를 위해)
-
-### 설치 및 실행
-
-1. 저장소 복제
-   ```bash
-   git clone https://github.com/zhenxhen/guansang.git
-   cd guansang-app
-   ```
-
-2. 의존성 설치
-   ```bash
-   npm install
-   # 또는
-   yarn
-   ```
-
-3. 환경 변수 설정
-   ```bash
-   # .env.example 파일을 .env 파일로 복사
-   cp .env.example .env
-   
-   # .env 파일을 편집하여 OpenAI API 키 입력
-   # REACT_APP_OPENAI_API_KEY=your_openai_api_key_here
-   ```
-
-4. 개발 서버 실행
-   ```bash
-   npm start
-   # 또는
-   yarn start
-   ```
-
-5. 브라우저에서 앱 열기
-   ```
-   http://localhost:3000
-   ```
-
-## 빌드
-
-프로덕션용 빌드:
-
-```bash
-npm run build
-# 또는
-yarn build
-```
 
 ## 작동 방식
 
