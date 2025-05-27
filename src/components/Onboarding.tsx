@@ -27,7 +27,26 @@ const fadeInUp = keyframes`
   }
 `;
 
-// Start/Next 버튼 스타일 (AnalysisButton과 동일)
+// 블러박스 내용 fade in/out 애니메이션
+const fadeIn = keyframes`
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+`;
+
+const fadeOut = keyframes`
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+`;
+
+// Start/Next/Agree 버튼 스타일 (AnalysisButton과 동일)
 const ActionButton = styled.div`
   position: absolute;
   bottom: 300px;
@@ -61,13 +80,14 @@ const ActionButton = styled.div`
   }
 `;
 
-// 이름 입력 블러 박스
-const NameInputOverlay = styled.div`
+// 이름 입력/카메라 권한 블러 박스
+const OverlayBox = styled.div`
   position: absolute;
   bottom: 380px;
   left: calc(50% - 125px);
   transform: translateX(-50%);
   width: 250px;
+  height: 120px;
   padding: 30px;
   background-color: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
@@ -77,7 +97,16 @@ const NameInputOverlay = styled.div`
   z-index: 1001;
   animation: ${fadeInUp} 0.3s ease-out forwards;
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+`;
 
+// 블러박스 내용 컨테이너 (fade in/out 애니메이션용)
+const OverlayContent = styled.div<{ isVisible: boolean; isAnimating: boolean }>`
+  opacity: ${props => props.isVisible ? 1 : 0};
+  animation: ${props => props.isAnimating ? (props.isVisible ? fadeIn : fadeOut) : 'none'} 0.6s ease-out forwards;
+  width: 100%;
 `;
 
 // 이름 입력 제목
@@ -87,7 +116,6 @@ const NameInputTitle = styled.h3`
   font-weight: 600;
   text-align: center;
   color: #333;
-  text-align: center;
 `;
 
 // 이름 입력 텍스트박스
@@ -106,12 +134,22 @@ const NameInput = styled.input`
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
   
   &:focus {
-    border-color: #007AFF;
+    border-color: #B0B0B0;
   }
   
   &::placeholder {
     color: #999;
   }
+`;
+
+// 카메라 권한 텍스트
+const CameraPermissionText = styled.p`
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  color: #333;
+  line-height: 1.5;
 `;
 
 const Onboarding: React.FC<OnboardingProps> = ({ onStart }) => {
@@ -128,9 +166,13 @@ const Onboarding: React.FC<OnboardingProps> = ({ onStart }) => {
   // 비디오 로딩 상태
   const [videoLoaded, setVideoLoaded] = useState(false);
   
-  // 이름 입력 단계 상태
-  const [showNameInput, setShowNameInput] = useState(false);
+  // 온보딩 단계 상태
+  const [currentStep, setCurrentStep] = useState<'start' | 'name' | 'camera'>('start');
   const [userName, setUserName] = useState('');
+  
+  // 애니메이션 상태
+  const [isContentVisible, setIsContentVisible] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   // 브라우저 높이 변경시 비디오 크기 조정 함수
   const updateViewportHeight = () => {
@@ -201,24 +243,51 @@ const Onboarding: React.FC<OnboardingProps> = ({ onStart }) => {
     }
   }, []);
 
+  // 단계 전환 함수
+  const transitionToNextStep = (nextStep: 'start' | 'name' | 'camera') => {
+    setIsAnimating(true);
+    setIsContentVisible(false);
+    
+    setTimeout(() => {
+      setCurrentStep(nextStep);
+      setIsContentVisible(true);
+      setTimeout(() => {
+        setIsAnimating(false);
+      }, 600);
+    }, 600);
+  };
+
   // 버튼 클릭 핸들러
   const handleButtonClick = () => {
-    if (!showNameInput) {
+    if (currentStep === 'start') {
       // Start 버튼 클릭 시 이름 입력 단계로 이동
-      setShowNameInput(true);
-    } else {
-      // Next 버튼 클릭 시 이름이 입력되었으면 다음 단계로
+      transitionToNextStep('name');
+    } else if (currentStep === 'name') {
+      // Next 버튼 클릭 시 이름이 입력되었으면 카메라 권한 단계로
       if (userName.trim()) {
-        onStart(userName);
+        transitionToNextStep('camera');
       }
+    } else if (currentStep === 'camera') {
+      // Agree 버튼 클릭 시 다음 단계로
+      onStart(userName);
     }
   };
 
   // 엔터키 처리
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && userName.trim()) {
-      onStart(userName);
+    if (e.key === 'Enter' && userName.trim() && currentStep === 'name') {
+      transitionToNextStep('camera');
     } 
+  };
+
+  // 버튼 텍스트 결정
+  const getButtonText = () => {
+    switch (currentStep) {
+      case 'start': return 'Start';
+      case 'name': return 'Next';
+      case 'camera': return 'Agree';
+      default: return 'Start';
+    }
   };
 
   return (
@@ -301,24 +370,35 @@ const Onboarding: React.FC<OnboardingProps> = ({ onStart }) => {
             </div>
           )}
           
-          {/* 이름 입력 오버레이 */}
-          {showNameInput && (
-            <NameInputOverlay>
-              <NameInputTitle>What is your name?</NameInputTitle>
-              <NameInput
-                type="text"
-                placeholder="Your name"
-                value={userName}
-                onChange={(e) => setUserName(e.target.value)}
-                onKeyPress={handleKeyPress}
-                autoFocus
-              />
-            </NameInputOverlay>
+          {/* 이름 입력/카메라 권한 오버레이 */}
+          {(currentStep === 'name' || currentStep === 'camera') && (
+            <OverlayBox>
+              <OverlayContent isVisible={isContentVisible} isAnimating={isAnimating}>
+                {currentStep === 'name' && (
+                  <>
+                    <NameInputTitle>What is your name?</NameInputTitle>
+                    <NameInput
+                      type="text"
+                      placeholder="Your name"
+                      value={userName}
+                      onChange={(e) => setUserName(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      autoFocus
+                    />
+                  </>
+                )}
+                {currentStep === 'camera' && (
+                  <CameraPermissionText>
+                    얼굴 이미지를 저장하지 않아요. <br />카메라 접근 권한을 허용해주세요.
+                  </CameraPermissionText>
+                )}
+              </OverlayContent>
+            </OverlayBox>
           )}
           
-          {/* Start/Next 버튼 - 컨테이너 중앙에 위치 */}
+          {/* Start/Next/Agree 버튼 - 컨테이너 중앙에 위치 */}
           <ActionButton onClick={handleButtonClick}>
-            {showNameInput ? 'Next' : 'Start'}
+            {getButtonText()}
           </ActionButton>
         </div>
       </div>
