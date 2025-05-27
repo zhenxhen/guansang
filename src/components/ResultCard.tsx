@@ -89,9 +89,24 @@ const MarkdownStyles = createGlobalStyle`
 
   .graph-bar {
     height: 100%;
-    background: linear-gradient(to right, #888, #555);
+    // background: linear-gradient(to right, #888, #555);
     border-radius: 20px;
     transition: width 0.8s ease-in-out;
+    position: relative;
+  }
+
+  .graph-bar::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 50px;
+    background-color: #d5d5d5;
+    box-shadow: 0px 0px 30px rgba(0, 0, 0, .6);
+    border-radius: 1px;
+    z-index: 3000;
   }
 
   .graph-label {
@@ -99,17 +114,17 @@ const MarkdownStyles = createGlobalStyle`
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: #fff;
+    color: transparent;
     font-size: 12px;
     font-weight: 700;
-    text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.37);
+    // text-shadow: 0px 0px 3px rgba(0, 0, 0, 0.37);
   }
 
   /* 마크다운 컨텐츠 스타일 유지 */
   .markdown-content {
     line-height: 1.8;
     font-size: 14px;
-    color: #797979;
+    color: transparent;
     text-align: left;
   }
   
