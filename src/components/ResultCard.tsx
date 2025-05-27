@@ -212,6 +212,9 @@ interface FaceFeatures {
   faceWidthPixels?: number;
   displayFaceRatio?: number; // 실시간 UI에서 표시되는 변환된 얼굴 비율
   displaySymmetryScore?: number; // 실시간 UI에서 표시되는 변환된 대칭성 점수
+  displayNoseLength?: number;
+  displayNoseHeight?: number;
+  displayLowerLipThickness?: number;
   [key: string]: number | string | undefined;
 }
 
@@ -265,7 +268,7 @@ const WiggleEffectStyle = createGlobalStyle<{ shouldWiggle: boolean }>`
 
 const CardWrapper = styled.div<{ isFlipped: boolean; isVisible: boolean; isLoading?: boolean }>`
   width: 90%;
-  max-width: 480px;
+  max-width: 400px;
   aspect-ratio: 0.46;
   margin: 20px auto 130px;
   background: #fff;
@@ -912,7 +915,7 @@ const safeToFixed = (value: any, digits: number = 2) => {
   return Number(value).toFixed(digits);
 };
 
-const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userName = '진원' }) => {
+const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userName }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const [screenSize, setScreenSize] = useState<'extraSmall' | 'small' | 'medium' | 'large'>('medium');
@@ -1276,7 +1279,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
                     <DataItem top="33%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>코 길이</DataLabel>
                       <DataValue screenSize={screenSize}>
-                        {result && <AnimatedNumber value={result.noseLength} format={(v) => v.toFixed(2)} delay={1300} shouldStart={startNumberAnimation} />}
+                        {result && <AnimatedNumber value={result.displayNoseLength || result.noseLength} format={(v) => v.toFixed(2)} delay={1300} shouldStart={startNumberAnimation} />}
                       </DataValue>
                     </DataItem>
                     
@@ -1284,7 +1287,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
                     <DataItem top="40%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>코 높이</DataLabel>
                       <DataValue screenSize={screenSize}>
-                        {result && <AnimatedNumber value={result.noseHeight} format={(v) => v.toFixed(2)} delay={1500} shouldStart={startNumberAnimation} />}
+                        {result && <AnimatedNumber value={result.displayNoseHeight || result.noseHeight} format={(v) => v.toFixed(2)} delay={1500} shouldStart={startNumberAnimation} />}
                       </DataValue>
                     </DataItem>
                     
@@ -1308,7 +1311,7 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
                     <DataItem top="50%" left="50%" style={{ transform: 'translateX(-50%)' }} screenSize={screenSize}>
                       <DataLabel screenSize={screenSize}>아랫입술 두께</DataLabel>
                       <DataValue screenSize={screenSize}>
-                        {result && <AnimatedNumber value={result.lowerLipThickness} format={(v) => v.toFixed(2)} delay={1900} shouldStart={startNumberAnimation} />}
+                        {result && <AnimatedNumber value={result.displayLowerLipThickness || result.lowerLipThickness} format={(v) => v.toFixed(2)} delay={1900} shouldStart={startNumberAnimation} />}
                       </DataValue>
                     </DataItem>
                     

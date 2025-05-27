@@ -26,6 +26,9 @@ export interface FaceFeatures {
   eyeDarkCircleColor?: string; // 다크서클 색상
   skinToneColor?: string; // 피부 색상 HEX 코드
   showDeviceInfo?: boolean; // 디바이스 정보 표시 여부
+  displayNoseHeight?: number;
+  displayNoseLength?: number;
+  displayLowerLipThickness?: number;
   [key: string]: number | string | boolean | undefined;
 }
 
@@ -447,21 +450,11 @@ const drawNoseCircles = (
     // devicePrefix = '[M] '; // 모바일 표시용 접두사
   }
   
-  // 값 텍스트 준비 (모바일 디바이스에서는 직접 계산하여 표시)
-  let displayNoseHeight = faceFeatures.noseHeight;
-  let displayNoseLength = faceFeatures.noseLength || 0;
-  let displayLowerLipThickness = faceFeatures.lowerLipThickness || 0;
-  
-  // 모바일 디바이스인 경우 값을 직접 변환 (iOS/Android)
-  if (currentDeviceType === 'iOS' || currentDeviceType === 'Android') {
-    // 직접 변환 계산을 적용
-    displayNoseHeight = displayNoseHeight / 3; // 코 높이 계산에 /3
-    displayNoseLength = displayNoseLength * 3; // 코 길이 계산에 *3
-    displayLowerLipThickness = displayLowerLipThickness * 3; // 밑 입술 계산에 *3
-  }
-  
-  const noseHeightText = `${devicePrefix}${displayNoseHeight.toFixed(2)}`;
-  const noseLengthText = displayNoseLength ? `${devicePrefix}${displayNoseLength.toFixed(2)}` : "0.00";
+  // 값 텍스트 준비 - 이미 플랫폼별로 계산된 값들을 사용
+  const noseHeightText = `${devicePrefix}${(faceFeatures.displayNoseHeight || faceFeatures.noseHeight).toFixed(2)}`;
+  const noseLengthText = faceFeatures.displayNoseLength ? 
+    `${devicePrefix}${faceFeatures.displayNoseLength.toFixed(2)}` : 
+    `${devicePrefix}${(faceFeatures.noseLength || 0).toFixed(2)}`;
   const leftNostrilText = faceFeatures.nostrilSize_L.toFixed(2);
   const rightNostrilText = faceFeatures.nostrilSize_R.toFixed(2);
   
@@ -469,8 +462,10 @@ const drawNoseCircles = (
   const leftTempleText = faceFeatures.eyeAngleDeg_L ? `${faceFeatures.eyeAngleDeg_L.toFixed(1)}°` : "0.0°";
   const rightTempleText = faceFeatures.eyeAngleDeg_R ? `${faceFeatures.eyeAngleDeg_R.toFixed(1)}°` : "0.0°";
   
-  // 입술 관련 값 텍스트 (모바일 디바이스에서 직접 변환한 값 사용)
-  const lowerLipText = displayLowerLipThickness ? `${devicePrefix}${displayLowerLipThickness.toFixed(2)}` : "0.00";
+  // 입술 관련 값 텍스트 - 이미 플랫폼별로 계산된 값 사용
+  const lowerLipText = faceFeatures.displayLowerLipThickness ? 
+    `${devicePrefix}${faceFeatures.displayLowerLipThickness.toFixed(2)}` : 
+    `${devicePrefix}${(faceFeatures.lowerLipThickness || 0).toFixed(2)}`;
   
   // 눈 색상 가져오기 (기본값은 갈색)
   const leftEyeColor = faceFeatures.eyeIrisColor_L || 'rgba(101, 67, 33, 0.9)'; // WebcamDetection에서 추출한 색상 사용

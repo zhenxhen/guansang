@@ -3,7 +3,7 @@ import styled, { keyframes } from 'styled-components';
 import { createGlobalStyle } from 'styled-components';
 
 interface OnboardingProps {
-  onStart: () => void;
+  onStart: (userName?: string) => void;
 }
 
 // 전역 스타일 설정
@@ -27,10 +27,10 @@ const fadeInUp = keyframes`
   }
 `;
 
-// Start 버튼 스타일 (AnalysisButton과 동일)
-const StartButton = styled.div`
+// Start/Next 버튼 스타일 (AnalysisButton과 동일)
+const ActionButton = styled.div`
   position: absolute;
-  bottom: 100px;
+  bottom: 300px;
   left: calc(50% - 125px);
   transform: translateX(-50%);
   width: 250px;
@@ -61,6 +61,59 @@ const StartButton = styled.div`
   }
 `;
 
+// 이름 입력 블러 박스
+const NameInputOverlay = styled.div`
+  position: absolute;
+  bottom: 380px;
+  left: calc(50% - 125px);
+  transform: translateX(-50%);
+  width: 250px;
+  padding: 30px;
+  background-color: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: 10px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 1001;
+  animation: ${fadeInUp} 0.3s ease-out forwards;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+
+`;
+
+// 이름 입력 제목
+const NameInputTitle = styled.h3`
+  margin: 0 0 20px 0;
+  font-size: 16px;
+  font-weight: 600;
+  text-align: center;
+  color: #333;
+  text-align: center;
+`;
+
+// 이름 입력 텍스트박스
+const NameInput = styled.input`
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 400;
+  color: #333;
+  text-align: center;
+  background-color: rgba(255, 255, 255, 0.7);
+  outline: none;
+  transition: border-color 0.3s ease;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
+  
+  &:focus {
+    border-color: #007AFF;
+  }
+  
+  &::placeholder {
+    color: #999;
+  }
+`;
+
 const Onboarding: React.FC<OnboardingProps> = ({ onStart }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -75,6 +128,10 @@ const Onboarding: React.FC<OnboardingProps> = ({ onStart }) => {
   // 비디오 로딩 상태
   const [videoLoaded, setVideoLoaded] = useState(false);
   
+  // 이름 입력 단계 상태
+  const [showNameInput, setShowNameInput] = useState(false);
+  const [userName, setUserName] = useState('');
+
   // 브라우저 높이 변경시 비디오 크기 조정 함수
   const updateViewportHeight = () => {
     const newHeight = window.innerHeight;
@@ -144,6 +201,26 @@ const Onboarding: React.FC<OnboardingProps> = ({ onStart }) => {
     }
   }, []);
 
+  // 버튼 클릭 핸들러
+  const handleButtonClick = () => {
+    if (!showNameInput) {
+      // Start 버튼 클릭 시 이름 입력 단계로 이동
+      setShowNameInput(true);
+    } else {
+      // Next 버튼 클릭 시 이름이 입력되었으면 다음 단계로
+      if (userName.trim()) {
+        onStart(userName);
+      }
+    }
+  };
+
+  // 엔터키 처리
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && userName.trim()) {
+      onStart(userName);
+    } 
+  };
+
   return (
     <>
       <GlobalStyle />
@@ -173,6 +250,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onStart }) => {
             overflow: 'hidden',
             boxShadow: isMobile ? 'none' : '0 6px 12px rgba(0, 0, 0, 0.1)',
             backgroundColor: '#000'
+            
           }}
         >
           {/* 백그라운드 비디오 */}
@@ -183,6 +261,7 @@ const Onboarding: React.FC<OnboardingProps> = ({ onStart }) => {
             muted
             playsInline
             style={{ 
+              transform: 'scaleX(1)',
               position: 'absolute',
               top: 0,
               left: 0,
@@ -190,7 +269,6 @@ const Onboarding: React.FC<OnboardingProps> = ({ onStart }) => {
               height: '100%',
               objectFit: 'cover',
               objectPosition: 'center',
-              transform: 'scaleX(-1)', // 좌우 반전
               zIndex: 1
             }}
             onLoadStart={() => console.log('비디오 로딩 시작')}
@@ -223,10 +301,25 @@ const Onboarding: React.FC<OnboardingProps> = ({ onStart }) => {
             </div>
           )}
           
-          {/* Start 버튼 - 컨테이너 중앙에 위치 */}
-          <StartButton onClick={onStart}>
-            Start
-          </StartButton>
+          {/* 이름 입력 오버레이 */}
+          {showNameInput && (
+            <NameInputOverlay>
+              <NameInputTitle>What is your name?</NameInputTitle>
+              <NameInput
+                type="text"
+                placeholder="Your name"
+                value={userName}
+                onChange={(e) => setUserName(e.target.value)}
+                onKeyPress={handleKeyPress}
+                autoFocus
+              />
+            </NameInputOverlay>
+          )}
+          
+          {/* Start/Next 버튼 - 컨테이너 중앙에 위치 */}
+          <ActionButton onClick={handleButtonClick}>
+            {showNameInput ? 'Next' : 'Start'}
+          </ActionButton>
         </div>
       </div>
     </>

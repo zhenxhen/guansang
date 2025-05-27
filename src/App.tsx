@@ -28,6 +28,7 @@ const GlobalStyle = createGlobalStyle`
 function App() {
   const [isVisible, setIsVisible] = useState(false);
   const [currentPage, setCurrentPage] = useState<'onboarding' | 'webcam'>('onboarding');
+  const [userName, setUserName] = useState<string>('');
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -74,7 +75,10 @@ function App() {
     };
   }, []);
 
-  const handleStart = () => {
+  const handleStart = (inputUserName?: string) => {
+    if (inputUserName) {
+      setUserName(inputUserName);
+    }
     setCurrentPage('webcam');
   };
 
@@ -86,7 +90,7 @@ function App() {
           {currentPage === 'onboarding' ? (
             <Onboarding onStart={handleStart} />
           ) : (
-            <WebcamDetection />
+            <WebcamDetection userName={userName} />
           )}
         </section>
       </div>

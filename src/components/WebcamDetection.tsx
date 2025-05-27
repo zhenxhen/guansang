@@ -121,7 +121,11 @@ const GlobalStyle = createGlobalStyle`
   }
 `;
 
-const WebcamDetection: React.FC = () => {
+interface WebcamDetectionProps {
+  userName?: string;
+}
+
+const WebcamDetection: React.FC<WebcamDetectionProps> = ({ userName }) => {
   const [faceLandmarkerLoaded, setFaceLandmarkerLoaded] = useState(false);
   const [webcamRunning, setWebcamRunning] = useState(false);
   const faceLandmarkerRef = useRef<FaceLandmarker | null>(null);
@@ -401,6 +405,9 @@ const WebcamDetection: React.FC = () => {
     // 플랫폼별 최종 계산된 값들 (UI에서 직접 사용)
     displayFaceRatio: number; // 플랫폼별 최종 얼굴 비율
     displaySymmetryScore: number; // 플랫폼별 최종 대칭성 점수
+    displayNoseHeight?: number; // 플랫폼별 최종 코 높이
+    displayNoseLength?: number; // 플랫폼별 최종 코 길이
+    displayLowerLipThickness?: number; // 플랫폼별 최종 아랫입술 두께
     [key: string]: number | string | undefined;
   }
 
@@ -995,6 +1002,11 @@ const WebcamDetection: React.FC = () => {
       displayFaceRatio: displayFaceRatio, // 플랫폼별 최종 얼굴 비율
       displaySymmetryScore: displaySymmetryScore, // 플랫폼별 최종 대칭성 점수
       
+      // 플랫폼별 변환이 적용된 UI 표시용 값들 추가
+      displayNoseHeight: isMobileView ? cappedNoseHeightRatio / 3 : cappedNoseHeightRatio,
+      displayNoseLength: isMobileView ? cappedNoseLengthRatio * 3 : cappedNoseLengthRatio,
+      displayLowerLipThickness: isMobileView ? cappedLowerLipRatio * 3 : cappedLowerLipRatio,
+      
       // 나머지 특성들
       foreheadNoseChinRatio: Math.random() * 0.8 + 0.2,
       eyeWidth_L: leftEyeWidth / faceWidth * 10,
@@ -1022,7 +1034,7 @@ const WebcamDetection: React.FC = () => {
       eyeIrisColor_R: eyeIrisColor_R,
       eyeDarkCircleColor: eyeDarkCircleColor,
       skinToneColor: skinToneColor,
-      faceWidthPixels, // 픽셀 단위 얼굴 너비 추가
+      faceWidthPixels: faceWidthPixels
     };
   };
 
@@ -1530,7 +1542,7 @@ const WebcamDetection: React.FC = () => {
             
             if (lowerLipBar && lowerLipText) {
               // 디바이스 타입에 관계없이 동일한 값 사용
-              const lowerLipValue = faceFeatures.lowerLipThickness;
+              const lowerLipValue = faceFeatures.displayLowerLipThickness || faceFeatures.lowerLipThickness;
               
               // 1.0을 50%로 표시하고, 범위는 0.2~2.0을 0~100%로 스케일링 (최대값 2.0으로 수정)
               const lowerLipPercent = Math.min(Math.max((lowerLipValue - 0.2) / 1.8 * 100, 0), 100).toFixed(1);
@@ -1634,6 +1646,7 @@ const WebcamDetection: React.FC = () => {
         result={currentResult}
         onRetake={handleRetake}
         onSave={handleSaveCard}
+        userName={userName}
       />
     );
   }
@@ -2101,10 +2114,10 @@ const WebcamDetection: React.FC = () => {
                 <div className="result-value">{result.eyeDistanceRatio.toFixed(2)}</div>
                 
                 <div className="result-label">코 길이:</div>
-                <div className="result-value">{result.noseLength.toFixed(2)}</div>
+                <div className="result-value">{(result.displayNoseLength || result.noseLength).toFixed(2)}</div>
                 
                 <div className="result-label">코 높이:</div>
-                <div className="result-value">{result.noseHeight.toFixed(2)}</div>
+                <div className="result-value">{(result.displayNoseHeight || result.noseHeight).toFixed(2)}</div>
                 
                 <div className="result-label">왼쪽 콧망울 크기:</div>
                 <div className="result-value">{result.nostrilSize_L.toFixed(2)}</div>
@@ -2113,7 +2126,7 @@ const WebcamDetection: React.FC = () => {
                 <div className="result-value">{result.nostrilSize_R.toFixed(2)}</div>
                 
                 <div className="result-label">아랫입술 두께:</div>
-                <div className="result-value">{result.lowerLipThickness.toFixed(2)}</div>
+                <div className="result-value">{(result.displayLowerLipThickness || result.lowerLipThickness).toFixed(2)}</div>
                 
                 <div className="result-label">왼쪽 눈동자 색상:</div>
                 <div className="result-value">{result.eyeIrisColor_L}</div>
