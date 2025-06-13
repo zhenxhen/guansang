@@ -135,9 +135,18 @@ export const getAIResult = async (data: ResultProps): Promise<AIResult> => {
           }
         }
 
-        return response.json();
+        // JSON 파싱 후 강제 참조 해제로 메모리 누수 방지
+        const result = await response.json();
+        
+        // 강제 가비지 컬렉션을 위한 참조 해제
+        (response as any) = null;
+        controller.abort(); // AbortController 정리
+        
+        return result;
       } catch (fetchError: any) {
         clearTimeout(timeoutId);
+        controller.abort(); // 에러 시에도 AbortController 정리
+        
         if (fetchError.name === 'AbortError') {
           throw new Error('요청 시간이 초과되었습니다.');
         }
@@ -166,6 +175,10 @@ export const getAIResult = async (data: ResultProps): Promise<AIResult> => {
     const userName = data.userName || '사용자';
     const formattedTitle = title.replace(/username/g, userName);
     const formattedDescription = description.replace(/username/g, userName);
+
+    // 메모리 정리를 위한 변수 해제
+    (result as any) = null;
+    (lines as any) = null;
 
     return {
       title: formattedTitle,

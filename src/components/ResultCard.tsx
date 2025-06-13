@@ -981,37 +981,54 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
   useEffect(() => {
     if (result) {
       setIsLoading(true);
+      let isCancelled = false; // 컴포넌트 언마운트 시 요청 취소를 위한 플래그
+      
       const fetchAIResult = async () => {
         try {
           const aiData = await getAIResult({
             ...result,
             userName: userName
           });
-          setAiResult(aiData);
-          setIsLoading(false);
           
-          // 로딩이 완료되면 한 번만 카드 흔들림 애니메이션 실행
-          setTimeout(() => {
-            setShouldWiggle(true);
+          // 컴포넌트가 언마운트되었으면 상태 업데이트 하지 않음
+          if (!isCancelled) {
+            setAiResult(aiData);
+            setIsLoading(false);
             
-            // 애니메이션 완료 후 리셋 (애니메이션 지속 시간과 일치)
+            // 로딩이 완료되면 한 번만 카드 흔들림 애니메이션 실행
             setTimeout(() => {
-              setShouldWiggle(false);
-            }, 2000);
-          }, 1000);
+              if (!isCancelled) {
+                setShouldWiggle(true);
+                
+                // 애니메이션 완료 후 리셋 (애니메이션 지속 시간과 일치)
+                setTimeout(() => {
+                  if (!isCancelled) {
+                    setShouldWiggle(false);
+                  }
+                }, 2000);
+              }
+            }, 1000);
+          }
           
         } catch (error) {
           console.error("AI 결과 가져오기 오류:", error);
-          setAiResult({
-            title: "분석 오류",
-            description: "분석 과정에서 오류가 발생했습니다. 다시 시도해주세요."
-          });
-          setIsLoading(false);
+          if (!isCancelled) {
+            setAiResult({
+              title: "분석 오류",
+              description: "분석 과정에서 오류가 발생했습니다. 다시 시도해주세요."
+            });
+            setIsLoading(false);
+          }
         }
       };
       
       // fetchAIResult 함수를 딱 한 번만 호출
       fetchAIResult();
+      
+      // cleanup 함수로 요청 취소
+      return () => {
+        isCancelled = true;
+      };
     }
   }, [result, userName]);
   
@@ -1065,6 +1082,11 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
         
         setProcessedDescription(htmlContent);
         console.log('전처리 완료');
+        
+        // 메모리 누수 방지를 위한 변수 정리
+        percentPatterns = [];
+        htmlContent = '';
+        
       } catch (error) {
         console.error('처리 중 오류:', error);
         setProcessedDescription(converter.makeHtml(aiResult.description));
@@ -1125,9 +1147,22 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
     document.body.style.overflow = 'hidden';
     document.body.style.backgroundColor = '#fff';
     
-    // 컴포넌트 언마운트 시 복원
+    // 컴포넌트 언마운트 시 복원 및 DOM 메모리 정리
     return () => {
       document.body.style.cssText = originalStyle;
+      
+      // DOM 메모리 누수 방지를 위한 강제 정리
+      const markdownElements = document.querySelectorAll('.markdown-content');
+      markdownElements.forEach(element => {
+        if (element instanceof HTMLElement) {
+          element.innerHTML = '';
+        }
+      });
+      
+      // 강제 가비지 컬렉션 유도
+      if (window.gc) {
+        window.gc();
+      }
     };
   }, []);
   
