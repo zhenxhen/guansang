@@ -982,8 +982,18 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
     if (result) {
       setIsLoading(true);
       let isCancelled = false; // 컴포넌트 언마운트 시 요청 취소를 위한 플래그
+      let isRequesting = false; // 중복 요청 방지 플래그
       
       const fetchAIResult = async () => {
+        // 이미 요청 중이면 중복 호출 방지
+        if (isRequesting) {
+          console.log('🚫 이미 API 요청 중 - 중복 호출 방지');
+          return;
+        }
+        
+        isRequesting = true;
+        console.log('🎯 fetchAIResult 시작');
+        
         try {
           const aiData = await getAIResult({
             ...result,
@@ -1019,6 +1029,8 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
             });
             setIsLoading(false);
           }
+        } finally {
+          isRequesting = false;
         }
       };
       
@@ -1028,9 +1040,10 @@ const ResultCard: React.FC<ResultCardProps> = ({ result, onRetake, onSave, userN
       // cleanup 함수로 요청 취소
       return () => {
         isCancelled = true;
+        isRequesting = false;
       };
     }
-  }, [result, userName]);
+  }, [result]);
   
   // AI 결과가 업데이트되면 전처리 수행
   useEffect(() => {
